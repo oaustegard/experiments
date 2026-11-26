@@ -190,6 +190,266 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
 }`;
 };
 
+// Tiled matmul (draft by Gemini, checked against the row kernel above): a workgroup of 8 x 8 threads
+// computes an (8 RB) x (8 CB) block of Y. Per tile of KT inputs it loads the X rows and the dequantized
+// weight columns into workgroup memory once, and every thread accumulates its RB x CB block from there,
+// so global memory is read once per block instead of once per output.
+// Same uniforms as linearWGSL; dispatch (ceil(N / (8 CB)), ceil(T / (8 RB))).
+const linearTiledWGSL = (fmt, K, G, KT, RB, CB) => HEAD + `
+${fmt === 'f32' ? `
+@group(0) @binding(2) var<storage, read> W: array<vec4<f32>>;
+@group(0) @binding(3) var<storage, read> B: array<f32>;
+@group(0) @binding(4) var<storage, read> X: array<vec4<f32>>;
+@group(0) @binding(5) var<storage, read_write> Y: array<f32>;
+` : `
+@group(0) @binding(2) var<storage, read> W: array<u32>;
+@group(0) @binding(3) var<storage, read> S: array<f32>;
+@group(0) @binding(4) var<storage, read> B: array<f32>;
+@group(0) @binding(5) var<storage, read> X: array<vec4<f32>>;
+@group(0) @binding(6) var<storage, read_write> Y: array<f32>;
+`}
+
+var<workgroup> As: array<vec4<f32>, ${8 * RB * (KT / 4)}>;
+var<workgroup> Bs: array<vec4<f32>, ${8 * CB * (KT / 4)}>;
+
+@compute @workgroup_size(8, 8, 1)
+fn main(
+  @builtin(workgroup_id) wid: vec3<u32>,
+  @builtin(local_invocation_id) lid: vec3<u32>
+) {
+  _ = d.n.x;
+  let T = p.a.x;
+  let xRow0 = p.a.y;
+  let yRow0 = p.a.z;
+  let flags = p.a.w;
+  let wRow0 = p.b.x;
+  let sRow0 = p.b.y;
+  let yCol0 = p.b.z;
+  let Ny = p.b.w;
+  let N = p.c.z;
+
+  let lx = lid.x;
+  let ly = lid.y;
+  let li = ly * 8u + lx;
+  let wx = wid.x;
+  let wy = wid.y;
+
+  let rBase = wy * ${8 * RB}u;
+  let cBase = wx * ${8 * CB}u;
+  let r0 = rBase + ly * ${RB}u;
+  let c0 = cBase + lx * ${CB}u;
+
+  var acc: array<f32, ${RB * CB}>;
+  for (var idx = 0u; idx < ${RB * CB}u; idx = idx + 1u) {
+    acc[idx] = 0.0;
+  }
+
+  for (var k0 = 0u; k0 < ${K}u; k0 = k0 + ${KT}u) {
+    for (var idx = li; idx < ${8 * RB * (KT / 4)}u; idx = idx + 64u) {
+      let tr = idx / ${KT / 4}u;
+      let q = idx % ${KT / 4}u;
+      let r = min(rBase + tr, T - 1u);
+      As[idx] = X[(xRow0 + r) * ${K / 4}u + (k0 / 4u) + q];
+    }
+
+${fmt === 'int4g' ? `
+    for (var idx = li; idx < ${8 * CB * (KT / 8)}u; idx = idx + 64u) {
+      let tc = idx / ${KT / 8}u;
+      let q2 = idx % ${KT / 8}u;
+      let n = min(cBase + tc, N - 1u);
+      let wr = wRow0 + n;
+      let sr = sRow0 + n;
+      let k = k0 + q2 * 8u;
+      let w = W[wr * ${K / 8}u + (k / 8u)];
+      let sc = S[sr * ${K / G}u + (k / ${G}u)];
+      let bIdx = tc * ${KT / 4}u + q2 * 2u;
+      Bs[bIdx] = nib4(w, vec4<u32>(0u, 4u, 8u, 12u)) * sc;
+      Bs[bIdx + 1u] = nib4(w, vec4<u32>(16u, 20u, 24u, 28u)) * sc;
+    }
+` : fmt === 'int8' ? `
+    for (var idx = li; idx < ${8 * CB * (KT / 4)}u; idx = idx + 64u) {
+      let tc = idx / ${KT / 4}u;
+      let q = idx % ${KT / 4}u;
+      let n = min(cBase + tc, N - 1u);
+      let wr = wRow0 + n;
+      let w = W[wr * ${K / 4}u + (k0 / 4u) + q];
+      Bs[idx] = i8x4(w);
+    }
+` : `
+    for (var idx = li; idx < ${8 * CB * (KT / 4)}u; idx = idx + 64u) {
+      let tc = idx / ${KT / 4}u;
+      let q = idx % ${KT / 4}u;
+      let n = min(cBase + tc, N - 1u);
+      let wr = wRow0 + n;
+      Bs[idx] = W[wr * ${K / 4}u + (k0 / 4u) + q];
+    }
+`}
+
+    workgroupBarrier();
+
+    var a: array<vec4<f32>, ${RB}>;
+    var b: array<vec4<f32>, ${CB}>;
+    for (var q = 0u; q < ${KT / 4}u; q = q + 1u) {
+      for (var i = 0u; i < ${RB}u; i = i + 1u) {
+        a[i] = As[(ly * ${RB}u + i) * ${KT / 4}u + q];
+      }
+      for (var j = 0u; j < ${CB}u; j = j + 1u) {
+        b[j] = Bs[(lx * ${CB}u + j) * ${KT / 4}u + q];
+      }
+      for (var i = 0u; i < ${RB}u; i = i + 1u) {
+        for (var j = 0u; j < ${CB}u; j = j + 1u) {
+          acc[i * ${CB}u + j] = acc[i * ${CB}u + j] + dot(a[i], b[j]);
+        }
+      }
+    }
+
+    workgroupBarrier();
+  }
+
+  for (var i = 0u; i < ${RB}u; i = i + 1u) {
+    let r = r0 + i;
+    if (r < T) {
+      for (var j = 0u; j < ${CB}u; j = j + 1u) {
+        let n = c0 + j;
+        if (n < N) {
+          let sr = sRow0 + n;
+          let sc = ${fmt === 'int8' ? 'S[sr]' : '1.0'};
+          var y = acc[i * ${CB}u + j] * sc + B[sr];
+          if ((flags & 1u) != 0u) {
+            y = gelu(y);
+          }
+          let yIdx = (yRow0 + r) * Ny + yCol0 + n;
+          if ((flags & 2u) != 0u) {
+            Y[yIdx] = Y[yIdx] + y;
+          } else {
+            Y[yIdx] = y;
+          }
+        }
+      }
+    }
+  }
+}
+`;
+
+// Tiled attention (draft by Gemini, checked against attnWGSL): 64 threads of a workgroup share one head
+// and stream tiles of KT keys (K and V) through workgroup memory; each thread owns QB queries and keeps
+// the same running softmax as attnWGSL. a = (Tq, first query row, Tk, 0); dispatch (H, ceil(Tq / (64 QB))).
+const attnTiledWGSL = (H, hd, Dm, QB, KT) => HEAD + `
+const HV: u32 = ${hd >>> 2}u;
+const DM4: u32 = ${Dm >>> 2}u;
+const QB_C: u32 = ${QB}u;
+const KT_C: u32 = ${KT}u;
+const TILE_SZ: u32 = ${KT * (hd >>> 2)}u;
+const SCALE: f32 = ${(1.0 / Math.sqrt(hd)).toExponential(9)};
+
+@group(0) @binding(2) var<storage, read> Q: array<vec4<f32>>;
+@group(0) @binding(3) var<storage, read> KK: array<vec4<f32>>;
+@group(0) @binding(4) var<storage, read> V: array<vec4<f32>>;
+@group(0) @binding(5) var<storage, read_write> O: array<vec4<f32>>;
+
+var<workgroup> Ks: array<vec4<f32>, ${KT * (hd >>> 2)}>;
+var<workgroup> Vs: array<vec4<f32>, ${KT * (hd >>> 2)}>;
+
+@compute @workgroup_size(64)
+fn main(
+  @builtin(local_invocation_id) lid: vec3<u32>,
+  @builtin(workgroup_id) wid: vec3<u32>
+) {
+  _ = d.n.x;
+  let li = lid.x;
+  let h = wid.x;
+  let qTile = wid.y;
+
+  let Tq = p.a.x;
+  let qRow0 = p.a.y;
+  let Tk = p.a.z;
+  let hBase = h * HV;
+
+  var qLoc: array<vec4<f32>, ${QB * (hd >>> 2)}>;
+  var acc: array<vec4<f32>, ${QB * (hd >>> 2)}>;
+  var m: array<f32, ${QB}>;
+  var z: array<f32, ${QB}>;
+  var kLoc: array<vec4<f32>, ${hd >>> 2}>;
+  var vLoc: array<vec4<f32>, ${hd >>> 2}>;
+
+  for (var b: u32 = 0u; b < QB_C; b = b + 1u) {
+    let qi = qTile * 64u * QB_C + li * QB_C + b;
+    let qClamped = min(qi, select(0u, Tq - 1u, Tq > 0u));
+    let qBase = (qRow0 + qClamped) * DM4 + hBase;
+    m[b] = -1e30;
+    z[b] = 0.0;
+    for (var e: u32 = 0u; e < HV; e = e + 1u) {
+      qLoc[b * HV + e] = Q[qBase + e] * SCALE;
+      acc[b * HV + e] = vec4<f32>(0.0);
+    }
+  }
+
+  for (var k0: u32 = 0u; k0 < Tk; k0 = k0 + KT_C) {
+    for (var idx: u32 = li; idx < TILE_SZ; idx = idx + 64u) {
+      let j = idx / HV;
+      let e = idx % HV;
+      let kRow = k0 + j;
+      if (kRow < Tk) {
+        let kvBase = kRow * DM4 + hBase + e;
+        Ks[idx] = KK[kvBase];
+        Vs[idx] = V[kvBase];
+      } else {
+        Ks[idx] = vec4<f32>(0.0);
+        Vs[idx] = vec4<f32>(0.0);
+      }
+    }
+
+    workgroupBarrier();
+
+    let jLim = min(KT_C, Tk - k0);
+    for (var j: u32 = 0u; j < jLim; j = j + 1u) {
+      let sBase = j * HV;
+      for (var e: u32 = 0u; e < HV; e = e + 1u) {
+        kLoc[e] = Ks[sBase + e];
+        vLoc[e] = Vs[sBase + e];
+      }
+
+      for (var b: u32 = 0u; b < QB_C; b = b + 1u) {
+        var s: f32 = 0.0;
+        let qbBase = b * HV;
+        for (var e: u32 = 0u; e < HV; e = e + 1u) {
+          s = s + dot(qLoc[qbBase + e], kLoc[e]);
+        }
+
+        let mOld = m[b];
+        if (s > mOld) {
+          let c = exp(mOld - s);
+          z[b] = z[b] * c;
+          for (var e: u32 = 0u; e < HV; e = e + 1u) {
+            acc[qbBase + e] = acc[qbBase + e] * c;
+          }
+          m[b] = s;
+        }
+        let w = exp(s - m[b]);
+        z[b] = z[b] + w;
+        for (var e: u32 = 0u; e < HV; e = e + 1u) {
+          acc[qbBase + e] = acc[qbBase + e] + w * vLoc[e];
+        }
+      }
+    }
+
+    workgroupBarrier();
+  }
+
+  for (var b: u32 = 0u; b < QB_C; b = b + 1u) {
+    let qi = qTile * 64u * QB_C + li * QB_C + b;
+    if (qi < Tq) {
+      let invZ = 1.0 / z[b];
+      let oBase = (qRow0 + qi) * DM4 + hBase;
+      let qbBase = b * HV;
+      for (var e: u32 = 0u; e < HV; e = e + 1u) {
+        O[oBase + e] = acc[qbBase + e] * invZ;
+      }
+    }
+  }
+}
+`;
+
 // Neck: rows of 4 neighbouring tokens become one conv2 input row in the weight's (channel, kw) order.
 // Y[h * Wn + w, c * 4 + kw] = X[h * Wp + 4 w + kw, c].  a = (C, Wp, Wn, 0); columns past 4 Wn are dropped, as the conv does.
 const REGROUP = HEAD + /* wgsl */ `
@@ -386,6 +646,9 @@ export class NemotronParse {
     this.dims = manifest.dims;
     this.gen = manifest.generation;
     this.budget = opts.budget || 4e9;
+    // Encoder kernel choice and tile shapes; setTune() changes them (benchmarks, A/B checks).
+    this.tune = { lin: "tiled", attn: "tiled", KT: 16, RB: 8, CB: 8, QB: 4, AKT: 16, tiledBudget: 3e10, ...(opts.tune || {}) };
+    this._tag = "";
     this.maxBind = Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize);
     this.pipes = {};
     this.zero = {};
@@ -559,6 +822,7 @@ export class NemotronParse {
     u32.set(params.a || [], 0);
     u32.set(params.b || [], 4);
     u32.set([gx * WG, threads, params.cz || 0, 0], 8);
+    const [dx, dy] = params.dispatch || [gx, gy];
     f32.set(params.f || [], 12);
     const ub = this.dev.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM, mappedAtCreation: true });
     new Uint8Array(ub.getMappedRange()).set(new Uint8Array(u));
@@ -566,7 +830,13 @@ export class NemotronParse {
     if (own) own.push(ub);
     const entries = [{ binding: 0, resource: { buffer: ub } }, { binding: 1, resource: { buffer: this.dyn } },
       ...bufs.map((buffer, i) => ({ binding: i + 2, resource: { buffer } }))];
-    list.push({ pipe, group: this.dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries }), gx, gy });
+    list.push({ pipe, group: this.dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries }), gx: dx, gy: dy, tag: this._tag });
+  }
+
+  // Change the encoder kernels ({lin, attn: "tiled" | "row", KT, RB, CB, QB, AKT, tiledBudget}); the next encode re-plans.
+  setTune(t) {
+    this.tune = { ...this.tune, ...t };
+    if (this.plan) this.plan.stale = true;
   }
 
   // Y[yRow0 + r, yCol0 + n] = W[n0 + n] . X[xRow0 + r] + bias, r < T, n < N; cut into dispatches of
@@ -576,6 +846,24 @@ export class NemotronParse {
     const N = o.N ?? w.N, K = w.K, Ny = o.Ny ?? N;
     const R = T >= 8 ? 8 : 1;
     const B = o.bias || this._zeros(w.N);
+    const tn = this.tune;
+    if (tn.lin === "tiled" && T >= 8 && !(flags & 4) && K % tn.KT === 0 && tn.KT % 8 === 0 && (w.fmt !== "int4g" || w.G % 8 === 0)
+        && (8 * tn.RB + 8 * tn.CB) * tn.KT * 4 <= 16384) {
+      const { KT, RB, CB } = tn, tr = 8 * RB, tc = 8 * CB;
+      const kind = `lint_${w.fmt}_${K}_${w.G}_${KT}_${RB}_${CB}`, code = this.pipes[kind] ? null : linearTiledWGSL(w.fmt, K, w.G, KT, RB, CB);
+      for (const part of w.parts) {
+        const a0 = Math.max(n0, part.n0), a1 = Math.min(n0 + N, part.n0 + part.n);
+        if (a1 <= a0) continue;
+        const rows = Math.max(tr, Math.floor(tn.tiledBudget / ((a1 - a0) * K) / tr) * tr);
+        for (let r = 0; r < T; r += rows) {
+          const t = Math.min(rows, T - r);
+          this._step(list, kind, { a: [t, xRow0 + r, yRow0 + r, flags], b: [a0 - part.n0, a0, yCol0 + a0 - n0, Ny], cz: a1 - a0,
+            dispatch: [Math.ceil((a1 - a0) / tc), Math.ceil(t / tr)] },
+            w.fmt === "f32" ? [part.buf, B, X, Y] : [part.buf, w.S, B, X, Y], 1, code, own);
+        }
+      }
+      return;
+    }
     const kind = `lin_${w.fmt}_${K}_${w.G}_${R}`, code = this.pipes[kind] ? null : linearWGSL(w.fmt, K, w.G, R);
     for (const part of w.parts) {
       const a0 = Math.max(n0, part.n0), a1 = Math.min(n0 + N, part.n0 + part.n);
@@ -598,7 +886,7 @@ export class NemotronParse {
 
   // Buffers and steps for one canvas size. Called by parse(); a different size replaces the plan.
   _plan(height, width) {
-    if (this.plan && this.plan.height === height && this.plan.width === width) return this.plan;
+    if (this.plan && !this.plan.stale && this.plan.height === height && this.plan.width === width) return this.plan;
     const dm = this.dims, P = dm.patch;
     if (height % P || width % P || width < 4 * P || height > dm.pos_grid * P || width > dm.pos_grid * P) {
       throw new Error(`canvas ${height}x${width}: both sides must be multiples of ${P}, at most ${dm.pos_grid * P}, width at least ${4 * P}`);
@@ -638,31 +926,50 @@ export class NemotronParse {
     this.dev.queue.writeBuffer(b.x0, 0, x0);
 
     const stages = [];   // each a list of steps, awaited as a unit
-    let s = [{ copy: [b.x0, b.x, T * E * 4] }];
+    let s = [{ copy: [b.x0, b.x, T * E * 4], tag: "embed" }];
+    this._tag = "embed";
     this._linear(s, W(R + "patch_generator.embedder.weight"), b.patches, b.x, Tp, { flags: 2, yRow0: PRE }, own);
     stages.push(s);
-    const attnKind = `attn_${EH}_${E / EH}_${E}`;
+    const attnKind = `attn_${EH}_${E / EH}_${E}`, tn = this.tune, hd = E / EH;
     const qPer = Math.max(QB, Math.floor(this.budget / (T * EH * (E / EH) * 2) / QB) * QB);
     for (let l = 0; l < dm.enc_layers; l++) {
       const L = `${R}blocks.${l}.`;
       const n1 = { G: W(L + "norm1.weight").B, B: W(L + "norm1.bias").B }, n2 = { G: W(L + "norm2.weight").B, B: W(L + "norm2.bias").B };
       const qkv = W(L + "attn.qkv.weight"), qb = W(L + "attn.qkv.bias").B;
       s = [];
+      this._tag = "norm";
       this._norm(s, n1, b.x, b.xn, T, E, dm.enc_eps, 0, 0, own);
+      this._tag = "qkv";
       [b.q, b.k, b.v].forEach((Y, j) => this._linear(s, qkv, b.xn, Y, T, { n0: j * E, N: E, bias: qb }, own));
-      for (let r = 0; r < T; r += qPer) {
-        const t = Math.min(qPer, T - r);
-        this._step(s, attnKind, { a: [t, r, T, 0] }, [b.q, b.k, b.v, b.xn], Math.ceil(t / QB) * EH, attnWGSL(EH, E / EH, E), own);
+      this._tag = "attn";
+      if (tn.attn === "tiled" && 2 * tn.AKT * hd * 4 <= 16384) {
+        const per = 64 * tn.QB, kind = `attnt_${EH}_${hd}_${E}_${tn.QB}_${tn.AKT}`;
+        const qt = Math.max(per, Math.floor(tn.tiledBudget / (T * EH * hd * 2) / per) * per);
+        for (let r = 0; r < T; r += qt) {
+          const t = Math.min(qt, T - r);
+          this._step(s, kind, { a: [t, r, T, 0], dispatch: [EH, Math.ceil(t / per)] }, [b.q, b.k, b.v, b.xn], 1,
+            this.pipes[kind] ? null : attnTiledWGSL(EH, hd, E, tn.QB, tn.AKT), own);
+        }
+      } else {
+        for (let r = 0; r < T; r += qPer) {
+          const t = Math.min(qPer, T - r);
+          this._step(s, attnKind, { a: [t, r, T, 0] }, [b.q, b.k, b.v, b.xn], Math.ceil(t / QB) * EH, attnWGSL(EH, E / EH, E), own);
+        }
       }
+      this._tag = "proj";
       this._linear(s, W(L + "attn.proj.weight"), b.xn, b.x, T, { flags: 2, bias: W(L + "attn.proj.bias").B }, own);
+      this._tag = "norm";
       this._norm(s, n2, b.x, b.xn, T, E, dm.enc_eps, 0, 0, own);
       for (let r = 0; r < T; r += mlpRows) {
         const t = Math.min(mlpRows, T - r);
+        this._tag = "fc1";
         this._linear(s, W(L + "mlp.fc1.weight"), b.xn, b.h, t, { flags: 1, xRow0: r, bias: W(L + "mlp.fc1.bias").B }, own);
+        this._tag = "fc2";
         this._linear(s, W(L + "mlp.fc2.weight"), b.h, b.x, t, { flags: 2, yRow0: r, bias: W(L + "mlp.fc2.bias").B }, own);
       }
       stages.push(s);
     }
+    this._tag = "neck";
     // neck: conv1 (1x1) -> LN -> conv2 (1x4 stride 4) -> LN; the three summary tokens -> sum_proj -> LN, appended
     s = [];
     const ln = (k) => ({ G: W(`encoder.${k}.weight`).B, B: W(`encoder.${k}.bias`).B });
@@ -683,6 +990,7 @@ export class NemotronParse {
       cross.push({ xk, xv });
     }
     stages.push(s);
+    this._tag = "";
     this.plan = { height, width, Hp, Wp, Tp, T, Te, b, stages, cross, own, PK };
     this.b = b;
     if (this.dec) {   // decoder steps bind the cross buffers: rebuild
@@ -821,13 +1129,28 @@ export class NemotronParse {
     if (patches.length !== plan.Tp * plan.PK) throw new Error("patches do not match the canvas size");
     this.dev.queue.writeBuffer(plan.b.patches, 0, patches);
     this.dev.queue.writeBuffer(this.dyn, 0, new Uint32Array([0, 0, 0, 0]));
+    const prof = opts.profile ? {} : null, last = plan.stages.length - 1;
     for (let i = 0; i < plan.stages.length; i++) {
       aborted(opts.signal);
       const steps = plan.stages[i];
-      for (let j = 0; j < steps.length; j += 16) this.dev.queue.submit([this._run(steps.slice(j, j + 16)).finish()]);
-      await this.dev.queue.onSubmittedWorkDone();
+      if (prof) {   // wall time per kind of step, each kind waited for; opts.layers runs only that many blocks
+        if (opts.layers && i > opts.layers && i < last) continue;
+        for (let j = 0; j < steps.length;) {
+          let e = j + 1;
+          while (e < steps.length && steps[e].tag === steps[j].tag) e++;
+          const t0 = performance.now();
+          for (let k = j; k < e; k += 16) this.dev.queue.submit([this._run(steps.slice(k, Math.min(e, k + 16))).finish()]);
+          await this.dev.queue.onSubmittedWorkDone();
+          prof[steps[j].tag] = (prof[steps[j].tag] || 0) + performance.now() - t0;
+          j = e;
+        }
+      } else {
+        for (let j = 0; j < steps.length; j += 16) this.dev.queue.submit([this._run(steps.slice(j, j + 16)).finish()]);
+        await this.dev.queue.onSubmittedWorkDone();
+      }
       await opts.onStage?.(i + 1, plan.stages.length);
     }
+    return prof;
   }
 
   // Feed one token at position `pos`; returns the next token (greedy, repetition penalty applied) when `want`.

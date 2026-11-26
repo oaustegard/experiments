@@ -16,7 +16,9 @@ try {
   const ref = await (await fetch(FX + "/ref.json")).json();
   const want = ref.cases.quant, [H, W] = ref.size;
   let t0 = performance.now();
-  const m = await NemotronParse.load({ base: `../web/models/${pack}/`, size: { height: H, width: W }, cache: false });
+  const tune = q.get("tune") ? JSON.parse(q.get("tune")) : undefined;
+  const m = await NemotronParse.load({ base: `../web/models/${pack}/`, size: { height: H, width: W }, cache: false, tune });
+  log("tune " + JSON.stringify(m.tune));
   m.dev.addEventListener("uncapturederror", (e) => log("GPU error: " + e.error.message));
   const loadMs = performance.now() - t0;
   log(`loaded in ${loadMs.toFixed(0)} ms; binding limit ${m.maxBind}`);
