@@ -69,18 +69,52 @@ def convert(rec: dict) -> dict:
             "tokens": len(rec["tokens"]), "hit_limit": rec.get("hit_limit", False)}
 
 
+def convert35(rec: dict) -> dict:
+    """Nemotron 3.5 Parse: NVIDIA's own postprocess_document (the nemotron_parse package in the model repo), as
+    the benchmark's 3.5 adapter runs it; boxes are normalized to the page content, bbox_pixels maps them back."""
+    from nemotron_parse.postprocessing import postprocess_document
+    from omni_parse_bench import markdown
+
+    W, H = rec["width"], rec["height"]
+    doc = postprocess_document(rec["raw"], image_size=(W, H))
+    parts, blocks = [], []
+    for b in doc.get("blocks") or []:
+        cls = b.get("class")
+        content = (b.get("content") or "").replace("<tbc>", "").strip()
+        x0, y0, x1, y1 = b["bbox_pixels"]
+        label = LABELS.get(cls)
+        if label and x1 > x0 and y1 > y0:
+            blocks.append({"kind": label, "bbox": {"x": x0, "y": y0, "width": x1 - x0, "height": y1 - y0},
+                           "text": content})
+        if not content:
+            continue
+        if cls in PICTURES:
+            parts.append(markdown.alt(markdown.to_html(content)))
+        elif cls == "Title" and not content.startswith("#"):
+            parts.append(f"# {content}")
+        elif cls == "Section-header" and not content.startswith("#"):
+            parts.append(f"## {content}")
+        else:
+            parts.append(content)
+    md = "\n\n".join(parts) if doc.get("blocks") else (doc.get("markdown") or "")
+    return {"page_id": rec["page_id"], "markdown": md, "width": W, "height": H, "blocks": blocks,
+            "tokens": len(rec["tokens"]), "hit_limit": rec.get("hit_limit", False)}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vendor", required=True)
     ap.add_argument("--run", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--arch", choices=["np2", "np35"], default="np2",
+                    help="np35: --vendor is a directory holding the 3.5 repo's nemotron_parse package")
     a = ap.parse_args()
     sys.path.insert(0, a.vendor)
     (a.out / "pages").mkdir(parents=True, exist_ok=True)
     n = 0
     for f in sorted(a.run.glob("*.json")):
         rec = json.loads(f.read_text())
-        (a.out / "pages" / f.name).write_text(json.dumps(convert(rec)))
+        (a.out / "pages" / f.name).write_text(json.dumps(convert35(rec) if a.arch == "np35" else convert(rec)))
         n += 1
     print(f"{n} pages -> {a.out}")
 
