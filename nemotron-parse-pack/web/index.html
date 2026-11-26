@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nemotron Parse in the browser</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="NVIDIA Nemotron Parse 2.0 (903M parameters) reading a page or a PDF into Markdown with layout boxes, in this browser tab on WebGPU, from weights packed to 4 and 8 bits. Nothing is uploaded.">
+<style>
+:root { --bg: #fbfbfa; --fg: #1b1b19; --muted: #66655f; --line: #dcdbd5; --panel: #fff; --accent: #2f5fd0; --accent-fg: #fff; --err-bg: #fdeceb; --err-fg: #8a1f17; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #161615; --fg: #ecebe7; --muted: #a3a29a; --line: #3a3936; --panel: #1f1f1d; --accent: #7aa2ff; --accent-fg: #0d1a3a; --err-bg: #3d1a17; --err-fg: #ffb4ab; } }
+:root[data-theme="dark"] { --bg: #161615; --fg: #ecebe7; --muted: #a3a29a; --line: #3a3936; --panel: #1f1f1d; --accent: #7aa2ff; --accent-fg: #0d1a3a; --err-bg: #3d1a17; --err-fg: #ffb4ab; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
+h1 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 8px; }
+h2 { font-size: 1.05rem; margin: 0 0 6px; }
+a { color: var(--accent); }
+.lede { margin: 0 0 16px; color: var(--muted); max-width: 80ch; }
+.muted { color: var(--muted); } .small { font-size: .875rem; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 0 0 14px; }
+.bar label { display: inline-flex; gap: 6px; align-items: center; }
+button, select, input[type=file], input[type=number] { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; }
+input[type=number] { width: 6.5em; }
+button { cursor: pointer; } button:disabled { opacity: .5; cursor: default; }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 800px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.stage canvas { display: block; width: 100%; height: auto; border-radius: 4px; }
+#drop { border: 2px dashed var(--line); border-radius: 8px; padding: 14px; text-align: center; margin: 0 0 14px; }
+#drop.over { border-color: var(--accent); }
+.tabs { display: flex; gap: 6px; margin: 0 0 8px; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+pre.out { white-space: pre-wrap; margin: 0; font: 13.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; max-height: 640px; overflow: auto; word-break: break-word; }
+#rendered { max-height: 640px; overflow: auto; }
+#rendered table { border-collapse: collapse; margin: 8px 0; font-size: .9rem; }
+#rendered td, #rendered th { border: 1px solid var(--line); padding: 2px 6px; }
+table.stats { border-collapse: collapse; width: 100%; font-size: .9rem; }
+table.stats td { text-align: left; padding: 2px 8px 2px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+#status { margin: 0 0 12px; min-height: 1.5em; }
+progress { width: 100%; height: 8px; }
+.err { background: var(--err-bg); color: var(--err-fg); border-radius: 6px; padding: 8px 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .8rem; margin-top: 8px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 4px; border-radius: 2px; background: var(--c); vertical-align: -1px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Nemotron Parse in the browser</h1>
+<p class="lede">NVIDIA's Nemotron Parse 2.0 reads a document page into Markdown, with a box, a class (title, text, table, picture, header, footer, ...) and a reading order for every block. Here it runs in this tab on your GPU through WebGPU, from weights packed to 4 and 8 bits; nothing is uploaded. It is a 903M-parameter model: the first run downloads <span id="size">several hundred MB</span>, which the browser then keeps, and a dense page takes tens of seconds even on a fast GPU.</p>
+
+<div id="drop">Drop an image or a PDF here, or <input id="file" type="file" accept="image/*,application/pdf,.pdf"> &nbsp; or try <select id="sample"><option value="">a sample…</option><option value="samples/paper.png">two-column paper with a table</option><option value="../../ppocr-pack/web/samples/letter.png">café notice</option><option value="../../ppocr-pack/web/samples/receipt.png">receipt</option></select></div>
+
+<div class="bar">
+  <label id="pagepick" hidden>PDF page <select id="pdfpage"></select></label>
+  <label title="The model reads pages at 1664 x 2048. Half size is about 6 times faster in the encoder and reads small print worse.">Input <select id="size-sel"><option value="full" selected>full (1664 × 2048)</option><option value="half">half (832 × 1024, faster)</option></select></label>
+  <label title="Also transcribe text inside pictures and charts"><input id="pictext" type="checkbox"> text in pictures</label>
+  <label>Max tokens <input id="maxtok" type="number" value="4096" min="64" max="9000" step="64"></label>
+  <button id="run" class="primary" disabled>Parse</button>
+  <button id="stop" disabled>Stop</button>
+</div>
+<p id="status" class="muted" role="status">Starting.</p>
+<progress id="prog" max="1" value="0" hidden></progress>
+
+<div class="grid">
+  <div class="panel"><div class="stage"><canvas id="cv" width="832" height="1024"></canvas></div><div class="legend" id="legend"></div></div>
+  <div>
+    <div class="panel">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="rendered">Rendered</button>
+        <button role="tab" aria-selected="false" data-tab="md">Markdown</button>
+        <button role="tab" aria-selected="false" data-tab="raw">Raw tokens</button>
+      </div>
+      <div id="rendered" class="tab muted">Parse a page to see it here.</div>
+      <pre id="md" class="tab out" hidden></pre>
+      <pre id="raw" class="tab out" hidden></pre>
+    </div>
+    <div class="panel" style="margin-top:16px"><h2>Timings and download</h2>
+      <table class="stats"><tbody id="stats"></tbody></table>
+      <p class="muted small">Measured in this page on your device. The model reads the whole image once (the encoder), then writes its output a word piece at a time (the decoder), so long pages take longer.</p>
+    </div>
+  </div>
+</div>
+
+<footer class="muted small">
+<p>Model: <a href="https://huggingface.co/nvidia/NVIDIA-Nemotron-Parse-2.0">NVIDIA Nemotron Parse 2.0</a> by NVIDIA, under the <a href="https://openmdw.ai/license/1-1/">OpenMDW License 1.1</a>; its tokenizer under CC-BY-4.0. The weights served here are modified: rounded to 4-bit and 8-bit integers with 16-bit scales (see <a href="https://github.com/oaustegard/experiments/blob/main/nemotron-parse-pack/NOTICE.md">NOTICE</a>). PDF pages are rendered with <a href="https://mozilla.github.io/pdf.js/">pdf.js</a>, filled-in form fields included. Method and results: <a href="https://github.com/oaustegard/experiments/tree/main/nemotron-parse-pack">nemotron-parse-pack on GitHub</a>. Build <code id="build"></code>.</p>
+</footer>
+</main>
+<script src="../../gpu-bridge/web/relay.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

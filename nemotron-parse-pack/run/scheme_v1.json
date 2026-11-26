@@ -1,0 +1,7 @@
+{
+ "group": 32,
+ "radio_model\\.model\\.blocks\\.\\d+\\.(attn|mlp)\\.(qkv|proj|fc1|fc2)\\.weight": "int4g",
+ "patch_generator\\.(pos_embed|embedder|cls_token)|encoder\\.conv[12]\\.weight|encoder\\.sum_proj\\.weight": "int8",
+ "decoder\\.layers\\.\\d+\\.((self_attn|encoder_attn)\\.(q|k|v|out)_proj|fc[12])\\.weight": "int8",
+ "decoder\\.embed_tokens\\.weight|lm_head\\.weight": "int8"
+}

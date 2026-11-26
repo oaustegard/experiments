@@ -1,0 +1,56 @@
+<!doctype html><meta charset="utf-8"><title>nemotron-parse-pack engine check</title><pre id="log"></pre>
+<script type="module">
+import { NemotronParse } from "../web/engine/nemotron.js";
+const log = (s) => { document.getElementById("log").textContent += s + "\n"; console.log(s); };
+const f32 = async (u) => new Float32Array(await (await fetch(u)).arrayBuffer());
+const stats = (a, b) => {
+  let mx = 0, dot = 0, na = 0, nb = 0, ref = 0;
+  for (let i = 0; i < a.length; i++) { mx = Math.max(mx, Math.abs(a[i] - b[i])); ref = Math.max(ref, Math.abs(b[i])); dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  return { max: mx, rel: mx / ref, cos: dot / Math.sqrt(na * nb) };
+};
+const argmax = (a) => { let b = 0; for (let i = 1; i < a.length; i++) if (a[i] > a[b]) b = i; return b; };
+try {
+  const q = new URLSearchParams(location.search);
+  const pack = q.get("pack") || "default";
+  const FX = q.get("fix") || "fixtures";
+  const ref = await (await fetch(FX + "/ref.json")).json();
+  const want = ref.cases.quant, [H, W] = ref.size;
+  let t0 = performance.now();
+  const m = await NemotronParse.load({ base: `../web/models/${pack}/`, size: { height: H, width: W }, cache: false });
+  m.dev.addEventListener("uncapturederror", (e) => log("GPU error: " + e.error.message));
+  const loadMs = performance.now() - t0;
+  log(`loaded in ${loadMs.toFixed(0)} ms; binding limit ${m.maxBind}`);
+  const image = await createImageBitmap(await (await fetch(FX + "/page.png")).blob());
+
+  // preprocessing against the processor's pixel_values [3, H, W]
+  const pre = m.preprocess(image), px = await f32(FX + "/pixels.f32");
+  let pixMax = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) for (let c = 0; c < 3; c++) {
+    const a = pre.patches[((y >> 4) * (W / 16) + (x >> 4)) * 768 + c * 256 + (y & 15) * 16 + (x & 15)];
+    pixMax = Math.max(pixMax, Math.abs(a - px[(c * H + y) * W + x]));
+  }
+
+  const encRef = await f32(FX + "/enc_quant.f32"), logRef = await f32(FX + "/logits_quant.f32");
+  let enc = null, logits = null;
+  const refTokens = want.tokens.filter((t, i) => !(i === want.tokens.length - 1 && t === 2));
+  const r = await m.parse(image, {
+    maxTokens: want.tokens.length,
+    onStage: async (i, n) => {
+      if (i === n) enc = m.probe("enc", encRef.length);
+    },
+    onFirst: async () => { logits = await m.probe("logits", m.vocab); },
+  });
+  const e = stats(await enc, encRef), l = stats(logits, logRef);
+  const same = r.tokens.length === refTokens.length && r.tokens.every((v, i) => v === refTokens[i]);
+  let agree = 0;
+  while (agree < r.tokens.length && r.tokens[agree] === refTokens[agree]) agree++;
+  const row = { pack, size: [H, W], loadMs, pixMax, encRel: e.rel, encCos: e.cos, logitCos: l.cos, logitMax: l.max,
+    argmax: argmax(logits), argmaxRef: want.argmax, same, agree, tokens: r.tokens.length, rawSame: r.raw === want.raw,
+    encMs: r.ms.encode, msPerToken: r.ms.decode / (r.tokens.length + 6), blocks: r.blocks.length };
+  log(JSON.stringify(row));
+  log(JSON.stringify(r.raw));
+  if (!same) log("ref " + JSON.stringify(refTokens) + "\ngot " + JSON.stringify(r.tokens));
+  log(JSON.stringify(r.blocks));
+  window.result = { rows: [row] };
+} catch (e) { log("ERROR " + (e.stack || e)); window.result = { error: String(e.stack || e) }; }
+</script>

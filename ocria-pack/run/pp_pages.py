@@ -24,7 +24,7 @@ PP_RUN = Path(__file__).resolve().parents[2] / "ppocr-pack" / "run"
 _S = {}
 
 
-def _init(models: str):
+def _init(models: str, tier: str = "tiny"):
     sys.path.insert(0, str(PP_RUN))
     import onnxruntime as ort
     import yaml
@@ -32,12 +32,12 @@ def _init(models: str):
     o = ort.SessionOptions()
     o.intra_op_num_threads = 1
     m = Path(models)
-    det_cfg = yaml.safe_load((m / "tiny_det/inference.yml").read_text())
-    rec_cfg = yaml.safe_load((m / "tiny_rec/inference.yml").read_text())
+    det_cfg = yaml.safe_load((m / f"{tier}_det/inference.yml").read_text())
+    rec_cfg = yaml.safe_load((m / f"{tier}_rec/inference.yml").read_text())
     norm = next(t["NormalizeImage"] for t in det_cfg["PreProcess"]["transform_ops"] if "NormalizeImage" in t)
     chars = rec_cfg["PostProcess"]["character_dict"]
-    _S.update(det=ort.InferenceSession(str(m / "tiny_det/inference.onnx"), o, providers=["CPUExecutionProvider"]),
-              rec=ort.InferenceSession(str(m / "tiny_rec/inference.onnx"), o, providers=["CPUExecutionProvider"]),
+    _S.update(det=ort.InferenceSession(str(m / f"{tier}_det/inference.onnx"), o, providers=["CPUExecutionProvider"]),
+              rec=ort.InferenceSession(str(m / f"{tier}_rec/inference.onnx"), o, providers=["CPUExecutionProvider"]),
               post=det_cfg["PostProcess"] | {"min_size": 3}, mean=norm["mean"], std=norm["std"],
               chars=["<blank>"] + list(chars) + [" "])
 
@@ -87,11 +87,12 @@ def main():
     ap.add_argument("--models", required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--tier", default="tiny", choices=["tiny", "small"])
     a = ap.parse_args()
     (a.out / "pages").mkdir(parents=True, exist_ok=True)
     jobs = [(pid, a.gray / f"{pid}.png", a.out / "pages" / f"{pid}.json") for pid in a.list.read_text().split()]
     jobs = [j for j in jobs if not j[2].exists()]
-    with ProcessPoolExecutor(a.workers, initializer=_init, initargs=(a.models,)) as ex:
+    with ProcessPoolExecutor(a.workers, initializer=_init, initargs=(a.models, a.tier)) as ex:
         ok = sum(ex.map(_page, jobs, chunksize=2))
     print(f"{len(jobs)} pages, {ok} ok")
 
