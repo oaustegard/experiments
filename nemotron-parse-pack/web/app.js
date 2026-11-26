@@ -5,7 +5,7 @@ import { openPdf } from "./pdf-flatten.js";
 import { marked } from "https://esm.sh/marked@12.0.2";
 import DOMPurify from "https://esm.sh/dompurify@3.1.6";
 
-const BUILD = "2026-11-26-d";   /* keep equal to build.json */
+const BUILD = "2026-11-26-e";   /* keep equal to build.json */
 const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "nemotron-parse-pack", build: BUILD });
 fetch("build.json", { cache: "no-store" }).then(r => (r.ok ? r.json() : null)).then(b => {
   if (b && b.build && b.build !== BUILD && !sessionStorage.getItem("np-reloaded")) {
@@ -18,7 +18,7 @@ const $ = id => document.getElementById(id);
 const PHONE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 const q = new URLSearchParams(location.search);
 const R2 = "https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/nemotron-parse-pack/";
-const PACK = q.get("pack") || "v35";
+const PACK = q.get("pack") || "v35i8";
 const BASE = q.get("base") || R2 + PACK + "/";
 $("build").textContent = BUILD + " · pack " + PACK;
 

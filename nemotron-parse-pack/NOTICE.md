@@ -2,13 +2,16 @@
 
 ## Model weights
 
-The packed weights that the browser page in this experiment (`web/index.html`) downloads derive from NVIDIA Nemotron Parse 2.0
-(https://huggingface.co/nvidia/NVIDIA-Nemotron-Parse-2.0), Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES,
+The packed weights that the browser page in this experiment (`web/index.html`) downloads derive from NVIDIA Nemotron 3.5 Parse
+(https://huggingface.co/nvidia/Nemotron-3.5-Parse; packs v35i8 and v35, tokenizer under the MIT license, see
+`web/models/LICENSE35.txt`) and NVIDIA Nemotron Parse 2.0 (https://huggingface.co/nvidia/NVIDIA-Nemotron-Parse-2.0;
+pack v1), Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES,
 licensed under the OpenMDW License Agreement, version 1.1. A copy of that agreement, with NVIDIA's notices, is in
 `web/models/LICENSE.txt` and sits beside the weight files on the download server (Cloudflare R2).
 
-Changes made in this experiment: the image encoder's weight matrices are rounded to 4-bit integers in groups of 32 and
-the text decoder's to 8-bit integers per row, each with 16-bit scales (`run/export.py` writes them); norms and biases are stored at 16 bits. The files are split
+Changes made in this experiment: weight matrices are rounded to integers with 16-bit scales: 8-bit per row in the
+Nemotron 3.5 Parse pack the page loads by default (v35i8); in the v35 and v1 packs the image encoder's are 4-bit in
+groups of 32 (`run/export.py` writes them); norms and biases are stored at 16 bits. The files are split
 into gzip shards for download. No weights were retrained.
 
 The tokenizer (`tokenizer.json`) is NVIDIA's, licensed under CC-BY-4.0
