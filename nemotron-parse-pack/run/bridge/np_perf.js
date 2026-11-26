@@ -3,6 +3,7 @@
 // Each variant runs encode({profile: true, layers}) (layers = how many of the 32 blocks to run; 0 = all) and
 // reports wall ms per step kind. With cfg.probe the first 4096 rows of the residual stream after the run are
 // compared against the first variant's (same layers), so a kernel change is checked on the real GPU too.
+// cfg.parse {maxTokens} then parses the page end to end with the engine's default kernels.
 // The loaded weights are kept in ctx.cache and adopted by whichever engine commit runs next.
 const cfg = ctx.inputs.cfg || {};
 const url = `https://cdn.jsdelivr.net/gh/oaustegard/experiments@${cfg.commit}/nemotron-parse-pack/web/engine/nemotron.js`;
@@ -28,7 +29,7 @@ m.dev.addEventListener("uncapturederror", (e) => { if (errors.length < 5) errors
 const bmp = await createImageBitmap(new Blob([ctx.inputs.png0], { type: "image/png" }));
 const pre = m.preprocess(bmp);
 let ref = null;
-const vs = cfg.variants || [{ name: "default", tune: {}, layers: 2 }];
+const vs = cfg.variants || [];
 for (const [i, v] of vs.entries()) {
   m.setTune(v.tune || {});
   const rec = { name: v.name, tune: { ...m.tune }, layers: v.layers || 0 };
@@ -57,6 +58,18 @@ for (const [i, v] of vs.entries()) {
   } catch (e) { rec.error = String(e.stack || e).slice(0, 600); }
   ctx.log(JSON.stringify(rec));
   out.variants.push(rec);
+}
+if (cfg.parse) {   // one whole page with the engine's default kernels: encode and decode time, tokens and text
+  const fresh = new NemotronParse(m.dev, m.m, {});
+  fresh.w = m.w; fresh.cpu = m.cpu; fresh.tok = m.tok; fresh.size = { ...m.size };
+  m.destroy();
+  ctx.cache.set("np-v1", fresh);
+  let n = 0;
+  const r = await fresh.parse(bmp, { maxTokens: cfg.parse.maxTokens || 4096,
+    onStage: (d, t) => ctx.progress(d / t * 0.5, `encode ${d}/${t}`),
+    onToken: () => { if (++n % 50 === 0) ctx.progress(null, `token ${n}`); } });
+  out.parse = { tune: fresh.tune, ms: r.ms, ntok: r.tokens.length, tokens: r.tokens, raw: r.raw, blocks: r.blocks.length };
+  ctx.log(JSON.stringify({ ms: r.ms, ntok: r.tokens.length }));
 }
 out.errors = errors;
 return out;

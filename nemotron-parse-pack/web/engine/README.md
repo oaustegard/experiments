@@ -24,6 +24,7 @@ const r = await m.parse(imageBitmapOrCanvasOrImageData, { onToken, signal });
 | `size` | `{height, width}` canvas, multiples of 16, at most 2048; default the pack's 2048 x 1664. Small sizes are for tests |
 | `cache` | `false` skips the Cache API (`nemotron-pack-v1`, keyed by shard URL and pack id) |
 | `budget` | multiply-adds per dispatch, default 4e9; lower it if a driver's watchdog kills long dispatches |
+| `tune` | encoder kernels: `{lin, attn: "tiled" \| "row", KT, RB, CB, QB, AKT, unroll, direct, tiledBudget}`. Defaults are the tiled kernels as tuned on an Apple GPU; `{lin: "row", attn: "row"}` are the first, untiled kernels, kept for A/B checks. `tiledBudget` (3e10) is the multiply-adds per tiled dispatch |
 | `parallel` | concurrent shard fetches, default 4 |
 | `cacheRows` | initial self-attention cache rows, default 1024; it doubles when a page runs past it |
 
@@ -39,6 +40,10 @@ const r = await m.parse(imageBitmapOrCanvasOrImageData, { onToken, signal });
 | `tableFormat` | `markdown` (default), `html` or `latex` for `Table` blocks |
 | `textFormat` | `markdown` (default) or `plain` |
 | `onStage(done, total)` | encoder progress: patch embedding, 32 blocks, neck |
+
+`encode(patches, {profile: true, layers})` returns wall milliseconds per kind of step (`embed`, `norm`, `qkv`,
+`attn`, `proj`, `fc1`, `fc2`, `neck`), each kind waited for; `layers` runs only that many of the 32 blocks.
+`run/bridge/np_perf.js` is the GPU bridge job that times kernel variants with it.
 
 `bbox` is in pixels of the image passed in. `raw` is the decoded output with the `<x_..><y_..>` and
 `<class_..>` tokens in it. Lower-level calls: `preprocess(image)`, `encode(patches)`,
@@ -75,10 +80,11 @@ The engine reads any kind for any 2-D tensor (K a multiple of 8; int4g groups a 
 - Weights are written into GPU buffers shard by shard as they arrive; a tensor larger than the
   storage binding limit is split by rows over several buffers. f16 records are widened to f32 on upload.
 - Encoder: patch rows are built in JS and embedded by the same linear kernel as everything else. The
-  position grid is interpolated in JS once per canvas size. Each linear thread computes one output
-  column for 8 rows; attention keeps a running softmax per (4 queries, head) over all keys, so there
-  is no score matrix. Linears and attention are cut into dispatches of at most `budget`
-  multiply-adds; the MLP runs in row chunks so its hidden buffer stays under 128 MB.
+  position grid is interpolated in JS once per canvas size. Attention never builds a score matrix:
+  the 64 threads of a workgroup take one head and 64 queries, stream tiles of 8 keys (K and V)
+  through workgroup memory, and each thread keeps a running softmax for its one query. Linears and
+  attention are cut into bounded dispatches; the MLP runs in row chunks so its hidden buffer stays
+  under 128 MB.
 - Decoder: one token per submit. Cross-attention keys and values are computed once per page, the
   self-attention keys and values are appended to a cache, the output projection reads the embedding
   table, and the argmax with the repetition penalty runs on the GPU (a 1 KB readback per token).
