@@ -50,7 +50,7 @@ progress { width: 100%; height: 8px; }
 <body>
 <main>
 <h1>Nemotron Parse in the browser</h1>
-<p class="lede">NVIDIA's Nemotron Parse 2.0 reads a document page into Markdown, with a box, a class (title, text, table, picture, header, footer, ...) and a reading order for every block. Here it runs in this tab on your GPU through WebGPU, from weights packed to 4 and 8 bits; nothing is uploaded. It is a 903M-parameter model: the first run downloads <span id="size">several hundred MB</span>, which the browser then keeps, and a dense page takes tens of seconds even on a fast GPU.</p>
+<p class="lede">NVIDIA's Nemotron Parse 2.0 reads a document page into Markdown, with a box, a class (title, text, table, picture, header, footer, ...) and a reading order for every block. Here it runs in this tab on your GPU through WebGPU, from weights packed to 4 and 8 bits; nothing is uploaded. It is a 903M-parameter model: the first run downloads <span id="size">558 MB</span>, which the browser then keeps. On a recent laptop GPU it reads a full page in about 14 seconds, then writes the text at about 50 tokens a second, so a dense page takes under a minute.</p>
 
 <div id="drop">Drop an image or a PDF here, or <input id="file" type="file" accept="image/*,application/pdf,.pdf"> &nbsp; or try <select id="sample"><option value="">a sample…</option><option value="samples/paper.png">two-column paper with a table</option><option value="../../ppocr-pack/web/samples/letter.png">café notice</option><option value="../../ppocr-pack/web/samples/receipt.png">receipt</option></select></div>
 

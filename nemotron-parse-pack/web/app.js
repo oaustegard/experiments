@@ -5,7 +5,7 @@ import { openPdf } from "./pdf-flatten.js";
 import { marked } from "https://esm.sh/marked@12.0.2";
 import DOMPurify from "https://esm.sh/dompurify@3.1.6";
 
-const BUILD = "2026-11-26-a";   /* keep equal to build.json */
+const BUILD = "2026-11-26-b";   /* keep equal to build.json */
 const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "nemotron-parse-pack", build: BUILD });
 fetch("build.json", { cache: "no-store" }).then(r => (r.ok ? r.json() : null)).then(b => {
   if (b && b.build && b.build !== BUILD && !sessionStorage.getItem("np-reloaded")) {
