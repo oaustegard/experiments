@@ -104,3 +104,24 @@ baselines, and adding the onnxruntime-web size. A porting recipe and a PaddleOCR
 (`toPaddleResult`) went into `web/README.md`; the packed engine also now serves the PP-OCRv6 options on
 austegard.com/web-utilities/anything-to-text.html when the browser has WebGPU.
 
+
+### 2026-11-26: CPU speed against OCRia-nano-1's Latin recognizer
+
+Asked (Oskar): what makes OCRia-nano-1 faster on a CPU than PP-OCRv6 small, and can PP small be made fast without
+retraining? `run/cpu_speed.py` timed the recognizers on onnxruntime 1.32, one thread, one line per call, on the 400
+FUNSD lines (`results/cpu_speed.json`):
+
+| arm | ms per line | CER |
+|---|---:|---:|
+| PP small as published | 26.9 | 5.29% |
+| head cut to blank + 458 Latin characters | 23.3 | 5.29% |
+| that, with int8 MatMuls | 22.4 | 5.30% |
+| PP small, lines padded to a multiple of 32 px instead of at least 320 | 21.8 | 5.49% |
+| head cut and no 320 px minimum | 17.4 | 5.49% |
+| PP tiny as published | 5.5 | 7.20% |
+| OCRia-nano-1 rec_latin (int8) | 1.4 | 5.80% |
+
+The CTC head over 18,710 characters is not where PP small's time goes: cutting it to Latin reads the same text on
+399 of 400 lines and saves 13%. A profile of 100 lines puts 67% of the time in convolutions, 11% in the
+attention MatMuls and 8% in GELU. The no-retraining changes together give 1.5x; OCRia's recognizer is 19x faster
+at 0.5 points more CER, from a smaller, depthwise-separable, all-convolution net on 32 px gray lines.
