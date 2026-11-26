@@ -5,7 +5,7 @@ import { openPdf } from "./pdf-flatten.js";
 import { marked } from "https://esm.sh/marked@12.0.2";
 import DOMPurify from "https://esm.sh/dompurify@3.1.6";
 
-const BUILD = "2026-11-26-b";   /* keep equal to build.json */
+const BUILD = "2026-11-26-c";   /* keep equal to build.json */
 const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "nemotron-parse-pack", build: BUILD });
 fetch("build.json", { cache: "no-store" }).then(r => (r.ok ? r.json() : null)).then(b => {
   if (b && b.build && b.build !== BUILD && !sessionStorage.getItem("np-reloaded")) {
@@ -14,6 +14,8 @@ fetch("build.json", { cache: "no-store" }).then(r => (r.ok ? r.json() : null)).t
 }).catch(() => {});
 
 const $ = id => document.getElementById(id);
+/* A phone has far less memory for one tab than a laptop, and iOS reloads a tab that takes too much. */
+const PHONE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 const q = new URLSearchParams(location.search);
 const R2 = "https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/nemotron-parse-pack/";
 const PACK = q.get("pack") || "v1";
@@ -102,13 +104,16 @@ async function ensureModel() {
   loading = (async () => {
     const t0 = performance.now();
     status("Downloading the model (kept by the browser after the first time)…"); progress(0);
+    let downloaded = 0;
     const m = await NemotronParse.load({
       base: BASE,
+      /* phones: smaller GPU submissions, so one dispatch never runs long enough for the OS to kill it */
+      ...(PHONE ? { budget: 5e8 } : {}),
       onProgress: ({ phase, loaded, total }) => {
-        if (total) { progress(loaded / total); $("size").textContent = (total / 1e6).toFixed(0) + " MB"; }
+        if (phase === "download" && total) { downloaded = total; progress(loaded / total); $("size").textContent = (total / 1e6).toFixed(0) + " MB"; }
         status(phase === "download" ? `Downloading the model: ${(loaded / 1e6).toFixed(0)} of ${(total / 1e6).toFixed(0)} MB (kept by the browser after the first time)…`
           : phase === "upload" ? "Copying the weights to the GPU…" : "Model ready.");
-        if (phase === "ready") setStat("Download", (total / 1e6).toFixed(1) + " MB (compressed)");
+        if (phase === "ready") setStat("Download", downloaded ? (downloaded / 1e6).toFixed(1) + " MB (compressed)" : "none: weights from the browser cache");
       },
     });
     progress(null);
@@ -173,5 +178,9 @@ function toMarkdown(blocks) {
 }
 $("stop").onclick = () => abort && abort.abort();
 
+if (PHONE) {
+  $("size-sel").value = "half";
+  $("phone-note").hidden = false;
+}
 status(navigator.gpu ? "Pick an image or a PDF." : "This browser has no WebGPU, which the model needs.", !navigator.gpu);
 relay.log("start", { webgpu: !!navigator.gpu, pack: PACK });
