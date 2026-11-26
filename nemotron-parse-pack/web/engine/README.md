@@ -1,9 +1,18 @@
-# Nemotron Parse 2.0 WebGPU engine
+# Nemotron Parse WebGPU engine
 
-`nemotron.js` runs [NVIDIA Nemotron Parse 2.0](https://huggingface.co/nvidia/NVIDIA-Nemotron-Parse-2.0)
-(C-RADIOv2-H ViT-H/16 encoder, conv neck, 10-layer mBART decoder) on hand-written WGSL kernels, from
-a pack written by `run/export.py`. `postprocess.js` holds the tokenizer decode and the ports of the
-model repo's `postprocessing.py` / `latex2html.py`. No dependencies.
+`nemotron.js` runs NVIDIA's document parsers on hand-written WGSL kernels, from a pack written by
+`run/export.py`. Two models, told apart by `manifest.arch`:
+
+- `np2`: [Nemotron Parse 2.0](https://huggingface.co/nvidia/NVIDIA-Nemotron-Parse-2.0). C-RADIOv2-H ViT-H/16
+  encoder (32 blocks, width 1280), conv neck, 10-layer mBART decoder with cross-attention. Every page is
+  padded to a 2048 x 1664 canvas.
+- `np35`: [Nemotron 3.5 Parse](https://huggingface.co/nvidia/Nemotron-3.5-Parse). C-RADIOv4-SO400M encoder
+  (27 blocks, width 1152, MLP 4304), the same neck, and a decoder-only mBART: the neck output is a causal
+  prefix of the token sequence, self-attention only, 16 query heads over 8 key heads. Pages are not padded to
+  a canvas (see "Nemotron 3.5" below).
+
+`postprocess.js` holds the tokenizer decode and the ports of the model repo's `postprocessing.py` /
+`latex2html.py`. No dependencies.
 
 ## API
 
@@ -52,6 +61,24 @@ const r = await m.parse(imageBitmapOrCanvasOrImageData, { onToken, signal });
 Preprocessing follows the model's processor: shrink only (never enlarge) to fit the canvas keeping
 aspect, PIL-style bilinear, centre on a white canvas, scale to [0, 1], CLIP mean and std.
 
+## Nemotron 3.5
+
+- Input: the page is shrunk (never enlarged) to fit `size` (default 2048 x 1664), then padded with white on
+  the right and bottom to a multiple of 16 rows and 64 columns. Nothing is centred, so the token count
+  follows the page: `preprocess()` returns `{patches, H, W, ch, cw}` (padded and content sizes) and
+  `encode()` takes that whole object. A page of a new size re-plans the encoder (well under a second).
+- Positions: the learned 128 x 128 grid is reduced to the content's patch grid (antialiased bilinear) and
+  sampled at each patch centre measured inside the content, as `hf_prefix_geometry.py` does.
+- Decoder: `encode()` ends with a prefill that runs the visual prefix (rows / 16 x columns / 64 tokens plus
+  one summary token) through the 10 decoder layers at once, with a causal tiled attention kernel, and leaves
+  its keys and values in the cache; tokens then decode one per submit over that cache.
+  `parse()` reports `ms: {encode, prefill, decode}` with the prefill counted inside `encode`.
+- Boxes are fractions of the page itself (2.0's are fractions of the padded canvas); `blocks[].bbox` is in
+  pixels of the image passed in either way.
+- The default prompt ends in `<predict_text_in_pic>`, as the model card has it.
+- Not ported: the multi-token-prediction heads (`decoder.extra_*`, left out of the pack), the drafter, and
+  the reference postprocessing's repair of an empty first box and removal of exactly repeated elements.
+
 ## Pack format (`nemotron-pack/1`)
 
 `manifest.json`:
@@ -59,7 +86,7 @@ aspect, PIL-style bilinear, centre on a white canvas, scale to [0, 1], CLIP mean
 - `tensors[name]`, named as in `model.safetensors`, offsets into one byte stream, every record 4-byte aligned:
   - `{kind: "f16", shape, w: [offset, length]}`
   - `{kind: "int8", shape: [N, K], q: [offset, length], s: [offset, length]}`: int8 codes row-major, one f16 scale per row
-  - `{kind: "int4g", shape: [N, K], group: G, q, s}`: two codes per byte (code + 8, low nibble = even column), f16 scales `[N, K / G]`
+  - `{kind: "int4g", shape: [N, K], group: G, q, s}`: two codes per byte (code + 8, low nibble = even column), f16 scales `[N, ceil(K / G)]` (a last group may be short: 3.5's fc2 has K = 4304)
 - `shards: [{file, bytes, gzip}]`: the stream cut every 47 MiB and gzipped. A host may serve them with
   `Content-Encoding: gzip` or as plain files; the loader inflates what arrives still compressed.
 - `id` (hash of the stream, the cache key), `dims`, `image` (canvas, mean, std), `generation`
@@ -92,6 +119,6 @@ The engine reads any kind for any 2-D tensor (K a multiple of 8; int4g groups a 
 
 ## Check
 
-`python3 run/ref.py` writes fixtures from the PyTorch model at a 512 x 416 canvas (fp32 and the
-quantized weights); `node test/check.mjs [pack]` runs the engine in headless Chromium on SwiftShader
-against them.
+`python3 run/ref.py [--model-dir DIR] [--scheme S] [--size HxW] [--out DIR]` writes fixtures from the PyTorch
+model (2.0 or 3.5) at a small canvas (fp32 and the quantized weights); `node test/check.mjs [pack] [fix=<fixtures dir>]` runs the engine in headless Chromium on SwiftShader
+against them (`v1 fix=fixtures-small` for 2.0, `v35 fix=fixtures35-small` for 3.5).

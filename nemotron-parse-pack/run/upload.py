@@ -1,6 +1,7 @@
 """Upload a pack directory to the public R2 bucket under nemotron-parse-pack/<name>/.
 
     python3 run/upload.py web/models/v1 v1
+    python3 run/upload.py web/models/v35 v35 web/models/LICENSE35.txt     # a licence file other than 2.0's
 
 Shards go up as application/octet-stream without Content-Encoding (the engine inflates them), the
 manifest and tokenizer as JSON, and the model licence beside them. Uses whisper-pack/run/shard.py's put(),
@@ -33,7 +34,7 @@ def put(path, key, ctype):
 
 src, name = Path(sys.argv[1]), sys.argv[2]
 prefix = f"nemotron-parse-pack/{name}/"
-lic = Path(__file__).resolve().parents[1] / "web" / "models" / "LICENSE.txt"
+lic = Path(sys.argv[3]) if len(sys.argv) > 3 else Path(__file__).resolve().parents[1] / "web" / "models" / "LICENSE.txt"
 files = sorted(src.glob("weights-*.bin.gz")) + [src / "tokenizer.json", lic, src / "manifest.json"]
 for f in files:
     ctype = "application/json" if f.suffix == ".json" else "text/plain; charset=utf-8" if f.suffix == ".txt" else "application/octet-stream"

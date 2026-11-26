@@ -318,9 +318,15 @@ export const latexTableToMarkdown = (text) => latexTables(text, "markdown");
 
 // raw model output -> [{cls, bbox (original image pixels), text}]
 export function toBlocks(raw, width, height, targetW = 1664, targetH = 2048, opts = {}) {
+  const box = (bb) => {
+    if (opts.frame !== "content") return transformBboxToOriginal(bb, width, height, targetW, targetH);
+    // Nemotron 3.5: content-normalized, so scale by the page and order the corners
+    const cl = (v, n) => Math.min(n, Math.max(0, v * n));
+    return [cl(Math.min(bb[0], bb[2]), width), cl(Math.min(bb[1], bb[3]), height), cl(Math.max(bb[0], bb[2]), width), cl(Math.max(bb[1], bb[3]), height)];
+  };
   return extractClassesBboxes(raw).map((b) => ({
     cls: b.cls,
-    bbox: transformBboxToOriginal(b.bbox, width, height, targetW, targetH),
+    bbox: box(b.bbox),
     text: postprocessText(b.text, b.cls, opts),
   }));
 }

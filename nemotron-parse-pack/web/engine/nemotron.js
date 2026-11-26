@@ -55,19 +55,13 @@ const linearWGSL = (fmt, K, G, R) => {
   }
   let sc = S[sr];` : fmt === "int4g" ? /* wgsl */ `
   let wo = wr * ${K / 8}u;
-  let so = sr * ${K / G}u;
-  for (var gi = 0u; gi < ${K / G}u; gi++) {
-    var part: array<f32, ${R}>;
-    for (var t = 0u; t < ${R}u; t++) { part[t] = 0.0; }
-    for (var j = 0u; j < ${G / 8}u; j++) {
-      let w = W[wo + gi * ${G / 8}u + j];
-      let lo = nib4(w, vec4<u32>(0u, 4u, 8u, 12u));
-      let hi = nib4(w, vec4<u32>(16u, 20u, 24u, 28u));
-      let xb = gi * ${G / 4}u + 2u * j;
-      for (var t = 0u; t < ${R}u; t++) { part[t] += dot(lo, X[rr[t] + xb]) + dot(hi, X[rr[t] + xb + 1u]); }
-    }
-    let s = S[so + gi];
-    for (var t = 0u; t < ${R}u; t++) { acc[t] += part[t] * s; }
+  let so = sr * ${Math.ceil(K / G)}u;
+  for (var b = 0u; b < ${K / 8}u; b++) {
+    let w = W[wo + b];
+    let lo = nib4(w, vec4<u32>(0u, 4u, 8u, 12u));
+    let hi = nib4(w, vec4<u32>(16u, 20u, 24u, 28u));
+    let s = S[so + (b * 8u) / ${G}u];
+    for (var t = 0u; t < ${R}u; t++) { acc[t] += (dot(lo, X[rr[t] + 2u * b]) + dot(hi, X[rr[t] + 2u * b + 1u])) * s; }
   }
   let sc = 1.0;` : /* wgsl */ `
   let wo = wr * ${K / 4}u;
@@ -261,7 +255,7 @@ ${fmt === 'int4g' ? `
       let sr = sRow0 + n;
       let k = k0 + q2 * 8u;
       let w = W[wr * ${K / 8}u + (k / 8u)];
-      let sc = S[sr * ${K / G}u + (k / ${G}u)];
+      let sc = S[sr * ${Math.ceil(K / G)}u + (k / ${G}u)];
       let bIdx = tc * ${KT / 4}u + q2 * 2u;
       Bs[bIdx] = nib4(w, vec4<u32>(0u, 4u, 8u, 12u)) * sc;
       Bs[bIdx + 1u] = nib4(w, vec4<u32>(16u, 20u, 24u, 28u)) * sc;
@@ -473,8 +467,10 @@ ${seq(RB * CB, (i) => `  acc[${i}] = s${i};`)}
 ` + src.slice(src.indexOf("  for (var i = 0u; i < " + RB + "u; i = i + 1u) {\n    let r = r0 + i;"));
 };
 
-const attnTiledUnrolledWGSL = (H, hd, Dm, QB, KT, direct) => {
-  const HV = hd / 4;
+// o.DmK: row width of K and V when it differs from Q's (grouped-query attention: o.rep query heads share one
+// key head); o.causal: query row r sees keys 0..r only (the dispatch passes Tk = last query row + 1).
+const attnTiledUnrolledWGSL = (H, hd, Dm, QB, KT, direct, o = {}) => {
+  const HV = hd / 4, DmK = o.DmK || Dm, rep_ = o.rep || 1, causal = !!o.causal;
   const kk = (e) => (direct ? `Ks[sb + ${e}u]` : `k${e}`), vv = (e) => (direct ? `Vs[sb + ${e}u]` : `v${e}`);   // direct: no local copy of the key
   return HEAD + `
 @group(0) @binding(2) var<storage, read> Q: array<vec4<f32>>;
@@ -489,6 +485,7 @@ fn main(@builtin(local_invocation_id) lid: vec3<u32>, @builtin(workgroup_id) wid
   let li = lid.x;
   let Tq = p.a.x; let qRow0 = p.a.y; let Tk = p.a.z;
   let hBase = wid.x * ${HV}u;
+  let kBase = (wid.x / ${rep_}u) * ${HV}u;
   let qi0 = wid.y * ${64 * QB}u + li * ${QB}u;
 ${seq(QB, (b) => `  let qb${b} = (qRow0 + min(qi0 + ${b}u, Tq - 1u)) * ${Dm / 4}u + hBase;
   var m${b} = -1e30; var z${b} = 0.0;
@@ -497,7 +494,7 @@ ${seq(HV, (e) => `  let q${b}_${e} = Q[qb${b} + ${e}u]; var a${b}_${e} = vec4<f3
     for (var idx = li; idx < ${KT * HV}u; idx = idx + 64u) {
       let kRow = k0 + idx / ${HV}u;
       if (kRow < Tk) {
-        let kvBase = kRow * ${Dm / 4}u + hBase + idx % ${HV}u;
+        let kvBase = kRow * ${DmK / 4}u + kBase + idx % ${HV}u;
         Ks[idx] = KK[kvBase];
         Vs[idx] = V[kvBase];
       } else {
@@ -510,7 +507,7 @@ ${seq(HV, (e) => `  let q${b}_${e} = Q[qb${b} + ${e}u]; var a${b}_${e} = vec4<f3
     for (var j = 0u; j < jLim; j = j + 1u) {
       let sb = j * ${HV}u;
 ${direct ? "" : seq(HV, (e) => `      let k${e} = Ks[sb + ${e}u]; let v${e} = Vs[sb + ${e}u];`)}
-${seq(QB, (b) => `      {
+${seq(QB, (b) => `      ${causal ? `if (k0 + j <= qRow0 + qi0 + ${b}u) ` : ""}{
         let s = (${seq(HV, (e) => `dot(q${b}_${e}, ${kk(e)})`, " + ")}) * ${1 / Math.sqrt(hd)};
         if (s > m${b}) {
           let c = exp(m${b} - s);
@@ -563,7 +560,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let w = bitcast<i32>(TB[bi / 4u]);
   let v = f32((w << (24u - 8u * (bi % 4u))) >> 24u) * TS[id];`
     : fmt === "int4g" ? `let bi = row * ${K}u + n;
-  let v = (f32((TB[bi / 8u] >> (4u * (bi % 8u))) & 15u) - 8.0) * TS[id * ${K / G}u + n / ${G}u];`
+  let v = (f32((TB[bi / 8u] >> (4u * (bi % 8u))) & 15u) - 8.0) * TS[id * ${Math.ceil(K / G)}u + n / ${G}u];`
       : `let v = TB[row * ${K}u + n];`}
   Y[n] = v * p.f.x;
 }`;
@@ -571,7 +568,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
 // Attention for one query row (the decoder), split so the keys run in parallel (from whisper.js).
 // ASCORE: SC[h * Tk + j] = q_h . k_{j,h} / 8, one thread per (key, head).
 // AMIX:   O[h * 64 + e] = sum_j softmax(SC[h])_j V[j, h, e], one thread per output value.
-// a = (Tk, H, D, flags)  flags: 1 Tk = d.n.x + 1
+// a = (Tk, H, D, flags)  flags: 1 Tk = d.n.x + 1   b = (K/V row width, query heads per key head)
 const ASCORE = HEAD + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> Q: array<f32>;
 @group(0) @binding(3) var<storage, read> KK: array<f32>;
@@ -584,7 +581,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   if ((p.a.w & 1u) != 0u) { Tk = d.n.x + 1u; }
   if (i >= Tk * H) { return; }
   let j = i / H; let h = i % H;
-  let qo = h * 64u; let ko = j * Dm + h * 64u;
+  let qo = h * 64u; let ko = j * p.b.x + (h / p.b.y) * 64u;
   var s = vec4<f32>(0.0);
   for (var e = 0u; e < 64u; e += 4u) {
     s += vec4<f32>(Q[qo + e], Q[qo + e + 1u], Q[qo + e + 2u], Q[qo + e + 3u])
@@ -604,6 +601,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   var Tk = p.a.x;
   if ((p.a.w & 1u) != 0u) { Tk = d.n.x + 1u; }
   let h = i / 64u;
+  let vo = (h / p.b.y) * 64u + i % 64u;
   let so = h * Tk;
   var mx = -1e30;
   for (var j = 0u; j < Tk; j++) { mx = max(mx, SC[so + j]); }
@@ -612,7 +610,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   for (var j = 0u; j < Tk; j++) {
     let w = exp(SC[so + j] - mx);
     z += w;
-    acc += w * V[j * Dm + i];
+    acc += w * V[j * p.b.x + vo];
   }
   O[i] = acc / z + f32(H) * 0.0;
 }`;
@@ -727,6 +725,7 @@ export class NemotronParse {
     this.opts = opts;
     this.m = manifest;
     this.dims = manifest.dims;
+    this.arch = manifest.arch || "np2";   // "np35": Nemotron 3.5 Parse (NaViT input, decoder-only with a visual prefix)
     this.gen = manifest.generation;
     this.budget = opts.budget || 4e9;
     // Encoder kernel choice and tile shapes; setTune() changes them (benchmarks, A/B checks). The defaults are the
@@ -796,7 +795,7 @@ export class NemotronParse {
           const rowBytes = t.kind === "int8" ? K : K / 2;
           w.parts = gpuParts(N, rowBytes, name);
           rawSink(t.q, w.parts, rowBytes);
-          const sn = t.kind === "int8" ? N : N * K / t.group;
+          const sn = t.kind === "int8" ? N : N * Math.ceil(K / t.group);
           const sp = gpuParts(1, sn * 4, name + ".s");
           halfSink(t.s, sp, sn * 4);
           w.S = sp[0].buf;
@@ -864,7 +863,7 @@ export class NemotronParse {
           const q = new Int8Array(c.q.buffer);
           for (let r = 0; r < N; r++) for (let k = 0; k < K; k++) f[r * K + k] = q[r * K + k] * s[r];
         } else {
-          const G = t.group, gs = K / G;
+          const G = t.group, gs = Math.ceil(K / G);
           for (let r = 0; r < N; r++) for (let k = 0; k < K; k++) {
             const i = r * K + k;
             f[i] = (((c.q[i >> 1] >> (4 * (i & 1))) & 15) - 8) * s[r * gs + Math.floor(k / G)];
@@ -994,11 +993,12 @@ export class NemotronParse {
     b.enc = this._buf(Te * D, "enc", own);
 
     // prefix tokens and the position grid: bilinear (align_corners) to max(Hp, Wp) squared, then the top-left window
+    // (3.5 places its positions per page from the content size: _positions35)
     const x0 = new Float32Array(T * E);
     x0.set(this.cpu[R + "patch_generator.cls_token.token"].subarray(0, PRE * E));
     const pos = this.cpu[R + "patch_generator.pos_embed"], Gd = dm.pos_grid, M = Math.max(Hp, Wp);
     const sc = M > 1 ? (Gd - 1) / (M - 1) : 0;
-    for (let i = 0; i < Hp; i++) {
+    for (let i = 0; i < (this.arch === "np2" ? Hp : 0); i++) {
       const sy = i * sc, y0 = Math.min(Math.floor(sy), Gd - 1), y1 = Math.min(y0 + 1, Gd - 1), fy = sy - y0;
       for (let j = 0; j < Wp; j++) {
         const sx = j * sc, xa = Math.min(Math.floor(sx), Gd - 1), xb = Math.min(xa + 1, Gd - 1), fx = sx - xa;
@@ -1017,6 +1017,7 @@ export class NemotronParse {
     this._linear(s, W(R + "patch_generator.embedder.weight"), b.patches, b.x, Tp, { flags: 2, yRow0: PRE }, own);
     stages.push(s);
     const attnKind = `attn_${EH}_${E / EH}_${E}`, tn = this.tune, hd = E / EH;
+    const qPer = Math.max(QB, Math.floor(this.budget / (T * EH * hd * 2) / QB) * QB);
     for (let l = 0; l < dm.enc_layers; l++) {
       const L = `${R}blocks.${l}.`;
       const n1 = { G: W(L + "norm1.weight").B, B: W(L + "norm1.bias").B }, n2 = { G: W(L + "norm2.weight").B, B: W(L + "norm2.bias").B };
@@ -1067,7 +1068,7 @@ export class NemotronParse {
     this._norm(s, ln("layer_norm3"), b.enc, b.enc, 1, D, dm.neck_eps, 0, Tn, own);
     // cross-attention keys and values for every decoder layer, once per page
     const cross = [];
-    for (let l = 0; l < dm.dec_layers; l++) {
+    for (let l = 0; l < (this.arch === "np2" ? dm.dec_layers : 0); l++) {
       const L = `decoder.layers.${l}.encoder_attn.`;
       const xk = this._buf(Te * D, `d${l}.xk`, own), xv = this._buf(Te * D, `d${l}.xv`, own);
       this._linear(s, W(L + "k_proj.weight"), b.enc, xk, Te, { bias: W(L + "k_proj.bias").B }, own);
@@ -1076,13 +1077,71 @@ export class NemotronParse {
     }
     stages.push(s);
     this._tag = "";
-    this.plan = { height, width, Hp, Wp, Tp, T, Te, b, stages, cross, own, PK };
+    this.plan = { height, width, Hp, Wp, Tp, T, Te, b, stages, cross, own, PK, x0, posKey: "" };
     this.b = b;
     if (this.dec) {   // decoder steps bind the cross buffers: rebuild
       for (const x of [...this.dec.own, ...this.dec.read, this.dec.b.logits, this.dec.b.seen, this.dec.b.pick]) x.destroy();
       this.dec = null;
     }
     return this.plan;
+  }
+
+  // 3.5's positions for one page (hf_prefix_geometry._normalized_2d_position_pages, content-normalized): the
+  // 128 x 128 learned grid is reduced to the content's patch grid (antialiased bilinear, or area means when the
+  // content is one patch thin), then sampled bilinearly (border clamp) at each patch's centre inside the content.
+  _positions35(plan, ch, cw) {
+    const key = ch + "x" + cw;
+    if (plan.posKey === key) return;
+    const dm = this.dims, P = dm.patch, E = dm.enc_width, PRE = dm.enc_prefix, G = dm.pos_grid, { Hp, Wp, x0 } = plan;
+    const pos = this.cpu["encoder.model_encoder.radio_model.model.patch_generator.pos_embed"];
+    const cr = Math.ceil(ch / P), cc = Math.ceil(cw / P), pool = Math.min(cr, cc) === 1;
+    const taps = (out) => Array.from({ length: out }, (_, i) => {
+      if (pool) {
+        const lo = Math.floor(i * G / out), hi = Math.ceil((i + 1) * G / out);
+        return { lo, k: new Float64Array(hi - lo).fill(1 / (hi - lo)) };
+      }
+      const scale = G / out, support = Math.max(scale, 1), inv = 1 / support, center = scale * (i + 0.5);
+      const lo = Math.max(Math.trunc(center - support + 0.5), 0), n = Math.min(Math.trunc(center + support + 0.5), G) - lo;
+      const k = new Float64Array(n);
+      let sum = 0;
+      for (let j = 0; j < n; j++) { k[j] = Math.max(0, 1 - Math.abs((j + lo - center + 0.5) * inv)); sum += k[j]; }
+      for (let j = 0; j < n; j++) k[j] /= sum;
+      return { lo, k };
+    });
+    const tc = taps(cc), tr = taps(cr);
+    const tmp = new Float32Array(G * cc * E);   // columns reduced
+    for (let y = 0; y < G; y++) for (let x = 0; x < cc; x++) {
+      const { lo, k } = tc[x], o = (y * cc + x) * E;
+      for (let j = 0; j < k.length; j++) {
+        const w = k[j], src = (y * G + lo + j) * E;
+        for (let c = 0; c < E; c++) tmp[o + c] += w * pos[src + c];
+      }
+    }
+    const grid = new Float32Array(cr * cc * E);
+    for (let y = 0; y < cr; y++) {
+      const { lo, k } = tr[y];
+      for (let j = 0; j < k.length; j++) {
+        const w = k[j], src = (lo + j) * cc * E, o = y * cc * E;
+        for (let c = 0; c < cc * E; c++) grid[o + c] += w * tmp[src + c];
+      }
+    }
+    const centre = (i, content, n) => {   // patch i's sample coordinate on the n-wide grid
+      const start = i * P, extent = Math.min(Math.max(content - start, 0), P);
+      const v = Math.min(start + 0.5 * extent, content) / content * n - 0.5;
+      return Math.min(Math.max(v, 0), n - 1);
+    };
+    for (let i = 0; i < Hp; i++) {
+      const sy = centre(i, ch, cr), y0 = Math.floor(sy), y1 = Math.min(y0 + 1, cr - 1), fy = sy - y0;
+      for (let j = 0; j < Wp; j++) {
+        const sx = centre(j, cw, cc), xa = Math.floor(sx), xb = Math.min(xa + 1, cc - 1), fx = sx - xa;
+        const o = (PRE + i * Wp + j) * E;
+        const p00 = (y0 * cc + xa) * E, p01 = (y0 * cc + xb) * E, p10 = (y1 * cc + xa) * E, p11 = (y1 * cc + xb) * E;
+        const w00 = (1 - fy) * (1 - fx), w01 = (1 - fy) * fx, w10 = fy * (1 - fx), w11 = fy * fx;
+        for (let c = 0; c < E; c++) x0[o + c] = w00 * grid[p00 + c] + w01 * grid[p01 + c] + w10 * grid[p10 + c] + w11 * grid[p11 + c];
+      }
+    }
+    this.dev.queue.writeBuffer(plan.b.x0, 0, x0);
+    plan.posKey = key;
   }
 
   // ---------------------------------------------------------------- decoder steps
@@ -1115,8 +1174,8 @@ export class NemotronParse {
     const s = [];
     this._norm(s, ln("decoder.layernorm_embedding"), b.de, b.dx, 1, D, dm.dec_eps, 0, 0, own);
     const attn1 = (K, Vb, Tk, flags) => {
-      this._step(s, "ascore", { a: [Tk, H, D, flags] }, [b.dq, K, b.sc], Math.max(Tk, cap) * H, null, own);
-      this._step(s, "amix", { a: [Tk, H, D, flags] }, [b.sc, Vb, b.da], D, null, own);
+      this._step(s, "ascore", { a: [Tk, H, D, flags], b: [D, 1] }, [b.dq, K, b.sc], Math.max(Tk, cap) * H, null, own);
+      this._step(s, "amix", { a: [Tk, H, D, flags], b: [D, 1] }, [b.sc, Vb, b.da], D, null, own);
     };
     const kv = [];
     for (let l = 0; l < dm.dec_layers; l++) {
@@ -1152,6 +1211,104 @@ export class NemotronParse {
     const read = old ? old.read : [0, 1].map(() => this.dev.createBuffer({ size: chunks * 8, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST }));
     this.dec = { cap, b, steps: s, head, embed, kv, own, read, chunks };
     Object.assign(this.b, b);
+  }
+
+  // 3.5: decoder-only. The neck output is a causal prefix of the sequence, so one cache of keys and values per
+  // layer holds the Te visual rows and then the text rows. `prefill` runs the Te rows through all layers at once
+  // (batched linears, causal tiled attention) and leaves their keys and values in the cache; the per-token steps
+  // then attend over rows 0..Te + pos. Grouped-query attention: 16 query heads over 8 key heads.
+  _buildDec35(cap) {
+    const dm = this.dims, D = dm.d_model, H = dm.dec_heads, F = dm.dec_ffn, Te = this.plan.Te, tn = this.tune;
+    const KH = dm.dec_kv_heads, DK = KH * 64, rep = H / KH;
+    const V = this.w["decoder.embed_tokens.weight"].N;
+    if (D / H !== 64) throw new Error("decoder head dim must be 64");
+    const W = (n) => { const w = this.w[n]; if (!w) throw new Error("pack has no tensor " + n); return w; };
+    const old = this.dec, own = [];
+    const b = {};
+    for (const k of ["de", "dx", "dn", "dq", "da"]) b[k] = this._buf(D, k, own);
+    b.dh = this._buf(F, "dh", own);
+    b.sc = this._buf(H * cap, "sc", own);
+    for (const k of ["hp", "np", "qp", "ap"]) b[k] = this._buf(Te * D, k, own);
+    b.fp = this._buf(Te * F, "fp", own);
+    b.logits = old ? old.b.logits : this._buf(V, "logits");
+    b.seen = old ? old.b.seen : this._buf(V, "seen");
+    const CH = 512, chunks = Math.ceil(V / CH);
+    b.pick = old ? old.b.pick : this._buf(chunks * 2, "pick");
+    const table = W("decoder.embed_tokens.weight");
+    this.vocab = V;
+    const embed = table.parts.map((part) => {
+      const st = [];
+      this._step(st, `embed_${table.fmt}_${D}_${table.G}`, { f: [dm.embed_scale] }, table.fmt === "f32" ? [part.buf, b.de] : [part.buf, table.S, b.de], D,
+        embedWGSL(table.fmt, D, table.G), own);
+      return { n0: part.n0, n: part.n, step: st[0] };
+    });
+    const ln = (k) => ({ G: W(k + ".weight").B, B: W(k + ".bias").B });
+    const copies = [], s = [], pf = [], kv = [];
+    const AKT = Math.min(tn.AKT, 16), akind = `attnc_${H}_${D}_${DK}_${AKT}`;
+    this._tag = "prefill";
+    this._norm(pf, ln("decoder.layernorm_embedding"), this.plan.b.enc, b.hp, Te, D, dm.dec_eps, 0, 0, own);
+    this._tag = "";
+    this._norm(s, ln("decoder.layernorm_embedding"), b.de, b.dx, 1, D, dm.dec_eps, 0, 0, own);
+    for (let l = 0; l < dm.dec_layers; l++) {
+      const L = `decoder.layers.${l}.`;
+      const kc = this._buf(cap * DK, `d${l}.kc`, own), vc = this._buf(cap * DK, `d${l}.vc`, own);
+      if (old) copies.push([old.kv[l].kc, kc, old.cap * DK * 4], [old.kv[l].vc, vc, old.cap * DK * 4]);
+      kv.push({ kc, vc });
+      // the visual prefix, all rows at once
+      const plin = (k, X, Y, o = {}) => this._linear(pf, W(L + k + ".weight"), X, Y, Te, { ...o, bias: W(L + k + ".bias").B }, own);
+      this._tag = "prefill";
+      this._norm(pf, ln(L + "self_attn_layer_norm"), b.hp, b.np, Te, D, dm.dec_eps, 0, 0, own);
+      plin("self_attn.q_proj", b.np, b.qp);
+      plin("self_attn.k_proj", b.np, kc, { Ny: DK });
+      plin("self_attn.v_proj", b.np, vc, { Ny: DK });
+      const qt = Math.max(64, Math.floor(tn.tiledBudget / (Te * H * 64 * 2) / 64) * 64);
+      for (let r = 0; r < Te; r += qt) {
+        const t = Math.min(qt, Te - r);
+        this._step(pf, akind, { a: [t, r, r + t, 0], dispatch: [H, Math.ceil(t / 64)] }, [b.qp, kc, vc, b.ap], 1,
+          this.pipes[akind] ? null : attnTiledUnrolledWGSL(H, 64, D, 1, AKT, true, { DmK: DK, rep, causal: true }), own);
+      }
+      plin("self_attn.out_proj", b.ap, b.hp, { flags: 2 });
+      this._norm(pf, ln(L + "final_layer_norm"), b.hp, b.np, Te, D, dm.dec_eps, 0, 0, own);
+      plin("fc1", b.np, b.fp, { flags: 1 });
+      plin("fc2", b.fp, b.hp, { flags: 2 });
+      this._tag = "";
+      // one text token at cache row d.n.x
+      const lin = (k, X, Y, o = {}) => this._linear(s, W(L + k + ".weight"), X, Y, 1, { ...o, bias: W(L + k + ".bias").B }, own);
+      this._norm(s, ln(L + "self_attn_layer_norm"), b.dx, b.dn, 1, D, dm.dec_eps, 0, 0, own);
+      lin("self_attn.q_proj", b.dn, b.dq);
+      lin("self_attn.k_proj", b.dn, kc, { flags: 4, Ny: DK });
+      lin("self_attn.v_proj", b.dn, vc, { flags: 4, Ny: DK });
+      this._step(s, "ascore", { a: [0, H, D, 1], b: [DK, rep] }, [b.dq, kc, b.sc], cap * H, null, own);
+      this._step(s, "amix", { a: [0, H, D, 1], b: [DK, rep] }, [b.sc, vc, b.da], D, null, own);
+      lin("self_attn.out_proj", b.da, b.dx, { flags: 2 });
+      this._norm(s, ln(L + "final_layer_norm"), b.dx, b.dn, 1, D, dm.dec_eps, 0, 0, own);
+      lin("fc1", b.dn, b.dh, { flags: 1 });
+      lin("fc2", b.dh, b.dx, { flags: 2 });
+    }
+    this._norm(s, ln("decoder.layer_norm"), b.dx, b.dn, 1, D, dm.dec_eps, 0, 0, own);
+    const head = [];
+    this._linear(head, table, b.dn, b.logits, 1, {}, own);
+    this._step(head, "pick", { a: [V, CH, 0, 0], f: [this.gen.repetition_penalty] }, [b.logits, b.seen, b.pick], chunks, null, own);
+    if (copies.length) {
+      const enc = this.dev.createCommandEncoder();
+      for (const [src, dst, n] of copies) enc.copyBufferToBuffer(src, 0, dst, 0, n);
+      this.dev.queue.submit([enc.finish()]);
+    }
+    if (old) for (const x of old.own) x.destroy();
+    const read = old ? old.read : [0, 1].map(() => this.dev.createBuffer({ size: chunks * 8, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST }));
+    this.dec = { cap, b, steps: s, head, embed, kv, own, read, chunks, prefill: pf, row0: Te };
+    Object.assign(this.b, b);
+  }
+
+  // The decoder steps, built on first use; `rows` more cache rows than now when it has to grow.
+  _decoder(grow) {
+    const first = this.opts.cacheRows || 1024;
+    if (this.arch === "np35") {
+      if (!this.dec) this._buildDec35(this.plan.Te + first);
+      else if (grow) this._buildDec35(this.dec.cap * 2);
+    } else if (!this.dec) this._buildDec(first);
+    else if (grow) this._buildDec(this.dec.cap * 2);
+    return this.dec;
   }
 
   // ---------------------------------------------------------------- running
@@ -1192,7 +1349,17 @@ export class NemotronParse {
     let rgb, step = 3;
     if (nw !== w || nh !== h) rgb = resizeBilinear(rgba, w, h, nw, nh);
     else { rgb = rgba; step = 4; }
+    if (this.arch === "np35") {   // NaViT: no canvas; white padding right and below to 16 rows x 64 columns
+      const H = Math.ceil(nh / P) * P, W = Math.ceil(nw / (4 * P)) * 4 * P;
+      return { patches: this._patches(rgb, step, nw, nh, 0, 0, H, W), width: w, height: h, H, W, ch: nh, cw: nw };
+    }
     const padL = Math.floor((TW - nw) / 2), padT = Math.floor((TH - nh) / 2);
+    return { patches: this._patches(rgb, step, nw, nh, padL, padT, TH, TW), width: w, height: h };
+  }
+
+  // nw x nh pixels placed at (padL, padT) on a white TH x TW canvas, as normalized patch rows.
+  _patches(rgb, step, nw, nh, padL, padT, TH, TW) {
+    const P = this.dims.patch;
     const { mean, std } = this.m.image;
     const Wp = TW / P, PK = 3 * P * P;
     const out = new Float32Array((TH / P) * Wp * PK);
@@ -1205,13 +1372,17 @@ export class NemotronParse {
         for (let c = 0; c < 3; c++) out[o + c * P * P] = lut[c][inside ? rgb[si + c] : 255];
       }
     }
-    return { patches: out, width: w, height: h };
+    return out;
   }
 
   // Run the encoder and neck on patch rows from preprocess(); fills the cross-attention caches.
-  async encode(patches, opts = {}) {
-    const plan = this._plan(this.size.height, this.size.width);
+  // 3.5 needs the whole preprocess() result (the page's padded and content sizes); it also prefills the decoder.
+  async encode(pre, opts = {}) {
+    const patches = pre.patches || pre, np35 = this.arch === "np35";
+    if (np35 && !pre.H) throw new Error("encode() needs the preprocess() result for this model");
+    const plan = np35 ? this._plan(pre.H, pre.W) : this._plan(this.size.height, this.size.width);
     if (patches.length !== plan.Tp * plan.PK) throw new Error("patches do not match the canvas size");
+    if (np35) this._positions35(plan, pre.ch, pre.cw);
     this.dev.queue.writeBuffer(plan.b.patches, 0, patches);
     this.dev.queue.writeBuffer(this.dyn, 0, new Uint32Array([0, 0, 0, 0]));
     const prof = opts.profile ? {} : null, last = plan.stages.length - 1;
@@ -1235,15 +1406,23 @@ export class NemotronParse {
       }
       await opts.onStage?.(i + 1, plan.stages.length);
     }
+    this.prefillMs = 0;
+    if (np35) {
+      const t0 = performance.now(), steps = this._decoder().prefill;
+      for (let j = 0; j < steps.length; j += 16) this.dev.queue.submit([this._run(steps.slice(j, j + 16)).finish()]);
+      await this.dev.queue.onSubmittedWorkDone();
+      this.prefillMs = performance.now() - t0;
+      if (prof) prof.prefill = this.prefillMs;
+    }
     return prof;
   }
 
   // Feed one token at position `pos`; returns the next token (greedy, repetition penalty applied) when `want`.
   async _token(id, pos, want) {
-    if (!this.dec) this._buildDec(this.opts.cacheRows || 1024);
-    if (pos >= this.dec.cap) this._buildDec(this.dec.cap * 2);
+    const row = pos + (this._decoder().row0 || 0);   // 3.5: text rows follow the visual prefix in the cache
+    if (row >= this.dec.cap) this._decoder(true);
     const dec = this.dec, part = dec.embed.find((e) => id >= e.n0 && id < e.n0 + e.n);
-    this.dev.queue.writeBuffer(this.dyn, 0, new Uint32Array([pos, id, part.n0, 0]));
+    this.dev.queue.writeBuffer(this.dyn, 0, new Uint32Array([row, id, part.n0, 0]));
     this.dev.queue.writeBuffer(dec.b.seen, id * 4, new Uint32Array([1]));
     const enc = this._run(want ? [part.step, ...dec.steps, ...dec.head] : [part.step, ...dec.steps]);
     if (!want) { this.dev.queue.submit([enc.finish()]); return -1; }
@@ -1262,7 +1441,7 @@ export class NemotronParse {
   // opts: maxTokens, onToken(id, text), onFirst() (called when the first step's logits are in b.logits), signal.
   async decode(promptIds, opts = {}) {
     const maxTokens = opts.maxTokens ?? this.gen.max_new_tokens;
-    if (!this.dec) this._buildDec(this.opts.cacheRows || 1024);
+    this._decoder();
     const clr = this.dev.createCommandEncoder();
     clr.clearBuffer(this.dec.b.seen);
     this.dev.queue.submit([clr.finish()]);
@@ -1284,17 +1463,19 @@ export class NemotronParse {
   // "html" | "latex"), textFormat ("markdown" | "plain"), onStage(done, total) during encoding.
   async parse(image, opts = {}) {
     if (opts.size) this.size = { height: opts.size.height, width: opts.size.width };
-    const size = this.size;
-    this._plan(size.height, size.width);
+    const size = this.size, np35 = this.arch === "np35";
+    if (!np35) this._plan(size.height, size.width);
     let t = performance.now();
     const pre = this.preprocess(image, size);
-    await this.encode(pre.patches, opts);
+    await this.encode(pre, opts);
     const encode = performance.now() - t;
     t = performance.now();
     const tokens = await this.decode(this.tok.encodePrompt(opts.prompt || this.gen.prompt), opts);
     const decode = performance.now() - t;
     const raw = this.tok.decode(tokens);
-    return { raw, tokens, ms: { encode, decode }, blocks: toBlocks(raw, pre.width, pre.height, size.width, size.height, opts) };
+    // 3.5's boxes are fractions of the page itself; 2.0's are fractions of the padded canvas
+    const blocks = np35 ? toBlocks(raw, pre.width, pre.height, 0, 0, { ...opts, frame: "content" }) : toBlocks(raw, pre.width, pre.height, size.width, size.height, opts);
+    return { raw, tokens, ms: np35 ? { encode, prefill: this.prefillMs, decode } : { encode, decode }, blocks };
   }
 
   // Copy an activation buffer back, for parity checks ("enc", "logits", "x", ...).

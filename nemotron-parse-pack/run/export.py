@@ -1,4 +1,5 @@
-"""Pack NVIDIA Nemotron Parse 2.0 weights for the WebGPU engine (web/engine/nemotron.js).
+"""Pack NVIDIA Nemotron Parse 2.0 or Nemotron 3.5 Parse weights for the WebGPU engine (web/engine/nemotron.js).
+The model is recognised from the tensor names (2.0 has cross-attention; manifest.arch "np2" or "np35").
 
     python3 run/export.py --scheme scheme.json --out web/models/<name>/ [--weights model.safetensors]
                           [--tokenizer tokenizer.json] [--shard-mb 47] [--no-stats]
@@ -22,7 +23,8 @@ Quantization math (pinned with the Kaggle accuracy study, so q * s here is bit-i
           any other ndim > 2 flattens to [out, in*kh*kw] (conv1, conv2).
   int8    per output row: s = f16(max|w_row| / 127), q = clamp(round(w / f32(s)), -127, 127)
   int4g   per output row per G consecutive inputs: s = f16(max|w_group| / 7),
-          q = clamp(round(w / f32(s)), -7, 7), stored as q + 8 in a nibble (low nibble = even index)
+          q = clamp(round(w / f32(s)), -7, 7), stored as q + 8 in a nibble (low nibble = even index);
+          when K is not a multiple of G the last group is the K % G columns left over (scales [N, ceil(K/G)])
   round is torch.round (half to even); a zero max gives s = 1 (as does a max so small that the
   f16 scale underflows to 0); dequant = q * f32(s).
   f16     w.half()
@@ -44,7 +46,7 @@ import numpy as np
 import torch
 
 FORMAT = "nemotron-pack/1"
-SKIP = re.compile(r"summary_idxs|input_conditioner|^lm_head\.")
+SKIP = re.compile(r"summary_idxs|input_conditioner|^lm_head\.|^decoder\.extra_(heads|proj)\.")   # extra_*: 3.5's multi-token-prediction heads, unused in plain decoding
 DEFAULT_SCHEME = {
     "group": 32,
     r"radio_model\.model\.blocks\.\d+\.(attn\.(qkv|proj)|mlp\.fc[12])\.weight$": "int4g",
@@ -101,13 +103,14 @@ def quantize(w, kind, group=None):
         q = torch.clamp(torch.round(r / s.float()[:, None]), -127, 127)
         d = q * s.float()[:, None]
     elif kind == "int4g":
-        if K % group or K % 8 or group % 8:
-            raise ValueError(f"int4g needs K % group == 0 and K, group multiples of 8 (K={K}, group={group})")
-        g = r.reshape(N, K // group, group)
+        if K % 8 or group % 8:
+            raise ValueError(f"int4g needs K and group to be multiples of 8 (K={K}, group={group})")
+        pad = (-K) % group   # a last group shorter than `group` (3.5's fc2, K = 4304) takes its scale from the columns it has
+        g = torch.nn.functional.pad(r, (0, pad)).reshape(N, -1, group)
         s = _scale(g.abs().amax(dim=2), 7)
         q = torch.clamp(torch.round(g / s.float()[:, :, None]), -7, 7)
-        d = (q * s.float()[:, :, None]).reshape(N, K)
-        q = q.reshape(N, K)
+        d = (q * s.float()[:, :, None]).reshape(N, -1)[:, :K]
+        q = q.reshape(N, -1)[:, :K]
     else:
         raise ValueError(kind)
     return q.to(torch.int8), s, d.reshape(w.shape)
@@ -227,18 +230,26 @@ def main():
     st.close()
     tok = slim_tokenizer(a.tokenizer or Path(a.weights).with_name("tokenizer.json"))
     (out / "tokenizer.json").write_text(json.dumps(tok, ensure_ascii=False, separators=(",", ":")))
-    prompt = "</s><s><predict_bbox><predict_classes><output_markdown><predict_no_text_in_pic>"
+    arch = "np2" if "decoder.layers.0.encoder_attn.q_proj.weight" in tensors else "np35"
+    shape = lambda n: tensors[n]["shape"]
+    R = "encoder.model_encoder.radio_model.model."
+    E, F = shape(R + "blocks.0.mlp.fc1.weight")[1], shape(R + "blocks.0.mlp.fc1.weight")[0]
+    layers = lambda pre: 1 + max(int(k[len(pre):].split(".")[0]) for k in tensors if k.startswith(pre))
+    prompt = "</s><s><predict_bbox><predict_classes><output_markdown><predict_" + ("no_text_in_pic>" if arch == "np2" else "text_in_pic>")
     manifest = {
         "format": FORMAT,
         "id": st.sha.hexdigest()[:16],
-        "model": "nvidia/NVIDIA-Nemotron-Parse-2.0",
+        "model": "nvidia/NVIDIA-Nemotron-Parse-2.0" if arch == "np2" else "nvidia/Nemotron-3.5-Parse",
+        "arch": arch,
         "scheme": scheme,
-        "dims": {"patch": 16, "enc_width": 1280, "enc_heads": 16, "enc_mlp": 5120, "enc_layers": 32, "enc_prefix": 8,
-                 "enc_summary": 3, "pos_grid": 128, "enc_eps": 1e-6, "neck_eps": 1e-6, "d_model": 1024, "dec_heads": 16,
-                 "dec_ffn": 4096, "dec_layers": 10, "dec_eps": 1e-5, "vocab": len(tok["tokens"]), "embed_scale": 32.0},
+        "dims": {"patch": 16, "enc_width": E, "enc_heads": 16, "enc_mlp": F, "enc_layers": layers(R + "blocks."),
+                 "enc_prefix": shape(R + "patch_generator.cls_token.token")[0], "enc_summary": shape("encoder.sum_proj.weight")[1] // E,
+                 "pos_grid": 128, "enc_eps": 1e-6, "neck_eps": 1e-6, "d_model": 1024, "dec_heads": 16,
+                 "dec_kv_heads": shape("decoder.layers.0.self_attn.k_proj.weight")[0] // 64,
+                 "dec_ffn": 4096, "dec_layers": layers("decoder.layers."), "dec_eps": 1e-5, "vocab": len(tok["tokens"]), "embed_scale": 32.0},
         "image": {"height": 2048, "width": 1664, "mean": [0.48145466, 0.4578275, 0.40821073],
                   "std": [0.26862954, 0.26130258, 0.27577711]},
-        "generation": {"eos": 2, "repetition_penalty": 1.1, "max_new_tokens": 9000, "prompt": prompt},
+        "generation": {"eos": 2, "repetition_penalty": 1.1, "max_new_tokens": 9000 if arch == "np2" else 8744, "prompt": prompt},
         "bytes": st.off,
         "shards": st.shards,
         "tensors": tensors,

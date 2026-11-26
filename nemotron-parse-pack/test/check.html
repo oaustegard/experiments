@@ -27,7 +27,12 @@ try {
   // preprocessing against the processor's pixel_values [3, H, W]
   const pre = m.preprocess(image), px = await f32(FX + "/pixels.f32");
   let pixMax = 0;
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) for (let c = 0; c < 3; c++) {
+  if (ref.arch === "np35") {   // the processor already emits patch rows [N, 768]
+    if (pre.patches.length !== px.length || pre.H !== ref.image_size[0] || pre.W !== ref.image_size[1] || pre.ch !== ref.content_size[0] || pre.cw !== ref.content_size[1]) {
+      throw new Error(`preprocess geometry ${[pre.H, pre.W, pre.ch, pre.cw]} != ${[...ref.image_size, ...ref.content_size]}`);
+    }
+    for (let i = 0; i < px.length; i++) pixMax = Math.max(pixMax, Math.abs(pre.patches[i] - px[i]));
+  } else for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) for (let c = 0; c < 3; c++) {
     const a = pre.patches[((y >> 4) * (W / 16) + (x >> 4)) * 768 + c * 256 + (y & 15) * 16 + (x & 15)];
     pixMax = Math.max(pixMax, Math.abs(a - px[(c * H + y) * W + x]));
   }
@@ -48,7 +53,7 @@ try {
   while (agree < r.tokens.length && r.tokens[agree] === refTokens[agree]) agree++;
   const row = { pack, size: [H, W], loadMs, pixMax, encRel: e.rel, encCos: e.cos, logitCos: l.cos, logitMax: l.max,
     argmax: argmax(logits), argmaxRef: want.argmax, same, agree, tokens: r.tokens.length, rawSame: r.raw === want.raw,
-    encMs: r.ms.encode, msPerToken: r.ms.decode / (r.tokens.length + 6), blocks: r.blocks.length };
+    encMs: r.ms.encode, prefillMs: r.ms.prefill, msPerToken: r.ms.decode / (r.tokens.length + 6), blocks: r.blocks.length };
   log(JSON.stringify(row));
   log(JSON.stringify(r.raw));
   if (!same) log("ref " + JSON.stringify(refTokens) + "\ngot " + JSON.stringify(r.tokens));
