@@ -1,0 +1,1197 @@
+{
+ "device": "Mac (apple metal-3, Chrome 157), GPU bridge",
+ "canvas": "2048x1664, pack v1",
+ "note": "prof = wall ms per kind of step via encode({profile}); layers = encoder blocks run (0 = all 32)",
+ "jobs": {
+  "np-perf-1": {
+   "commit": "5ba0d84281bdcc902f3d8044bb2aee1e36a9fb9e",
+   "variants": [
+    {
+     "name": "row",
+     "tune": {
+      "lin": "row",
+      "attn": "row",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 4,
+      "AKT": 16,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 21186.099999904633,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 21044,
+      "proj": 28,
+      "fc1": 27,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "t16-8x8|q4k16",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 4,
+      "AKT": 16,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 5327.099999904633,
+     "prof": {
+      "embed": 25,
+      "norm": 2,
+      "qkv": 102,
+      "attn": 4712,
+      "proj": 30,
+      "fc1": 137,
+      "fc2": 182,
+      "neck": 137
+     },
+     "vsFirst": {
+      "maxRel": 3.240350818525578e-07,
+      "cos": 0.9999999999997287,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "t32-8x8|q2k16",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 32,
+      "RB": 8,
+      "CB": 8,
+      "QB": 2,
+      "AKT": 16,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 4196.600000023842,
+     "prof": {
+      "embed": 25,
+      "norm": 2,
+      "qkv": 94,
+      "attn": 3572,
+      "proj": 33,
+      "fc1": 145,
+      "fc2": 183,
+      "neck": 143
+     },
+     "vsFirst": {
+      "maxRel": 3.240350818525578e-07,
+      "cos": 0.9999999999997287,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "t32-4x4|q8k16",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 32,
+      "RB": 4,
+      "CB": 4,
+      "QB": 8,
+      "AKT": 16,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 13172.199999928474,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 16,
+      "attn": 13066,
+      "proj": 10,
+      "fc1": 22,
+      "fc2": 21,
+      "neck": 27
+     },
+     "vsFirst": {
+      "maxRel": 3.240350818525578e-07,
+      "cos": 0.9999999999997287,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "t16-4x8|q4k24",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 4,
+      "CB": 8,
+      "QB": 4,
+      "AKT": 24,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 4943.700000047684,
+     "prof": {
+      "embed": 10,
+      "norm": 2,
+      "qkv": 26,
+      "attn": 4780,
+      "proj": 12,
+      "fc1": 35,
+      "fc2": 35,
+      "neck": 43
+     },
+     "vsFirst": {
+      "maxRel": 3.240350818525578e-07,
+      "cos": 0.9999999999997287,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "t16-8x4|q1k24",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 4,
+      "QB": 1,
+      "AKT": 24,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 12203.799999952316,
+     "prof": {
+      "embed": 13,
+      "norm": 2,
+      "qkv": 42,
+      "attn": 11938,
+      "proj": 24,
+      "fc1": 58,
+      "fc2": 58,
+      "neck": 69
+     },
+     "vsFirst": {
+      "maxRel": 3.240350818525578e-07,
+      "cos": 0.9999999999997287,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    }
+   ]
+  },
+  "np-perf-2": {
+   "commit": "875206705145bd2a303e82719a87a22af681680e",
+   "variants": [
+    {
+     "name": "ref q2k16 loops",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 2,
+      "AKT": 16,
+      "unroll": false,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 3680.5,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 3559,
+      "proj": 9,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q1k16",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 16,
+      "unroll": true,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 1328.7000000476837,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 1209,
+      "proj": 8,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q2k16",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 2,
+      "AKT": 16,
+      "unroll": true,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 2390.2999999523163,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 2269,
+      "proj": 9,
+      "fc1": 25,
+      "fc2": 27,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q4k16",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 4,
+      "AKT": 16,
+      "unroll": true,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 4334,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 20,
+      "attn": 4209,
+      "proj": 10,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q2k24",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 2,
+      "AKT": 24,
+      "unroll": true,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 2370.2000000476837,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 20,
+      "attn": 2247,
+      "proj": 9,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q2k8",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 2,
+      "AKT": 8,
+      "unroll": true,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 2325.6999999284744,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 2200,
+      "proj": 12,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q1k8 + lin t32-4x4",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 32,
+      "RB": 4,
+      "CB": 4,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 1090.1000000238419,
+     "prof": {
+      "embed": 7,
+      "norm": 2,
+      "qkv": 16,
+      "attn": 991,
+      "proj": 5,
+      "fc1": 21,
+      "fc2": 22,
+      "neck": 27
+     },
+     "vsFirst": {
+      "maxRel": 3.240350818525578e-07,
+      "cos": 0.9999999999997287,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q2k16 + lin t16-8x8",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 2,
+      "AKT": 16,
+      "unroll": true,
+      "tiledBudget": 30000000000
+     },
+     "layers": 1,
+     "ms": 2386.2000000476837,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 2257,
+      "proj": 10,
+      "fc1": 26,
+      "fc2": 28,
+      "neck": 37
+     },
+     "vsFirst": {
+      "maxRel": 3.240350818525578e-07,
+      "cos": 0.9999999999997287,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    }
+   ]
+  },
+  "np-perf-3": {
+   "commit": "9d76ef414c97d0844d04f600e5eb480328d9fd32",
+   "variants": [
+    {
+     "name": "ref u q1k8",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 1135.8999999761581,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 20,
+      "attn": 1016,
+      "proj": 7,
+      "fc1": 25,
+      "fc2": 28,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q1k8 direct",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 500.5,
+     "prof": {
+      "embed": 7,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 384,
+      "proj": 7,
+      "fc1": 25,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q1k4 direct",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 4,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 513.3999999761581,
+     "prof": {
+      "embed": 7,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 397,
+      "proj": 7,
+      "fc1": 25,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "u q1k24 direct",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 24,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 539,
+     "prof": {
+      "embed": 7,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 422,
+      "proj": 7,
+      "fc1": 25,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "mat qm8 128M",
+     "tune": {
+      "lin": "row",
+      "attn": "mat",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 24,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 1914.9000000953674,
+     "prof": {
+      "embed": 9,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 1793,
+      "proj": 8,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 2.2682455729679047e-07,
+      "cos": 0.9999999999997486,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "mat qm4 128M",
+     "tune": {
+      "lin": "row",
+      "attn": "mat",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 24,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000,
+      "QM": 4,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 1858.3999999761581,
+     "prof": {
+      "embed": 9,
+      "norm": 2,
+      "qkv": 20,
+      "attn": 1738,
+      "proj": 7,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 2.2682455729679047e-07,
+      "cos": 0.9999999999997486,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "mat qm16 128M",
+     "tune": {
+      "lin": "row",
+      "attn": "mat",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 24,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000,
+      "QM": 16,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 2456.6999999284744,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 2336,
+      "proj": 9,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 2.2682455729679047e-07,
+      "cos": 0.9999999999997486,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "mat qm8 32M",
+     "tune": {
+      "lin": "row",
+      "attn": "mat",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 24,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 33554432
+     },
+     "layers": 1,
+     "ms": 2848.100000023842,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 2727,
+      "proj": 8,
+      "fc1": 27,
+      "fc2": 27,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 2.2682455729679047e-07,
+      "cos": 0.9999999999997486,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "mat qm8 1G",
+     "tune": {
+      "lin": "row",
+      "attn": "mat",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 24,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 1073741824
+     },
+     "layers": 1,
+     "ms": 1608.3999999761581,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 1487,
+      "proj": 9,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 2.2682455729679047e-07,
+      "cos": 0.9999999999997486,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    }
+   ]
+  },
+  "np-perf-4": {
+   "commit": "bdcc8d6844da46086f44883e868e23985e71cf07",
+   "variants": [
+    {
+     "name": "ref u q1k8 direct",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 497.5,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 20,
+      "attn": 379,
+      "proj": 7,
+      "fc1": 25,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "q1k8 direct qg",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": true,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 616.6000000238419,
+     "prof": {
+      "embed": 7,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 500,
+      "proj": 7,
+      "fc1": 25,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "q1k16 direct qg",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 1,
+      "AKT": 16,
+      "unroll": true,
+      "direct": true,
+      "qg": true,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 614.7000000476837,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 498,
+      "proj": 7,
+      "fc1": 25,
+      "fc2": 27,
+      "neck": 30
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "q2k8 direct",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 8,
+      "CB": 8,
+      "QB": 2,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 1754.1999999284744,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 19,
+      "attn": 1633,
+      "proj": 9,
+      "fc1": 26,
+      "fc2": 27,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 0,
+      "cos": 1,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "lin t32-4x4",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 32,
+      "RB": 4,
+      "CB": 4,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 480.5,
+     "prof": {
+      "embed": 7,
+      "norm": 2,
+      "qkv": 16,
+      "attn": 379,
+      "proj": 5,
+      "fc1": 21,
+      "fc2": 23,
+      "neck": 26
+     },
+     "vsFirst": {
+      "maxRel": 2.9163157366730205e-07,
+      "cos": 0.9999999999995919,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "lin t16-4x4",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 4,
+      "CB": 4,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 478.39999997615814,
+     "prof": {
+      "embed": 7,
+      "norm": 2,
+      "qkv": 16,
+      "attn": 380,
+      "proj": 5,
+      "fc1": 21,
+      "fc2": 21,
+      "neck": 26
+     },
+     "vsFirst": {
+      "maxRel": 2.9163157366730205e-07,
+      "cos": 0.9999999999995919,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "lin t32-2x4",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 32,
+      "RB": 2,
+      "CB": 4,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 511.5,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 21,
+      "attn": 379,
+      "proj": 7,
+      "fc1": 29,
+      "fc2": 29,
+      "neck": 35
+     },
+     "vsFirst": {
+      "maxRel": 2.9163157366730205e-07,
+      "cos": 0.9999999999995919,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "lin t32-4x2",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 32,
+      "RB": 4,
+      "CB": 2,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 512.6000000238419,
+     "prof": {
+      "embed": 8,
+      "norm": 2,
+      "qkv": 22,
+      "attn": 379,
+      "proj": 8,
+      "fc1": 29,
+      "fc2": 30,
+      "neck": 35
+     },
+     "vsFirst": {
+      "maxRel": 2.9163157366730205e-07,
+      "cos": 0.9999999999995919,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "lin t64-2x2",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 64,
+      "RB": 2,
+      "CB": 2,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 1,
+     "ms": 573.2999999523163,
+     "prof": {
+      "embed": 11,
+      "norm": 2,
+      "qkv": 33,
+      "attn": 379,
+      "proj": 11,
+      "fc1": 43,
+      "fc2": 43,
+      "neck": 52
+     },
+     "vsFirst": {
+      "maxRel": 2.9163157366730205e-07,
+      "cos": 0.9999999999995919,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    },
+    {
+     "name": "FULL row + q1k8 direct",
+     "tune": {
+      "lin": "row",
+      "attn": "tiled",
+      "KT": 64,
+      "RB": 2,
+      "CB": 2,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "qg": false,
+      "tiledBudget": 30000000000,
+      "QM": 8,
+      "matBytes": 134217728
+     },
+     "layers": 0,
+     "ms": 14713.099999904633,
+     "prof": {
+      "embed": 8,
+      "norm": 59,
+      "qkv": 610,
+      "attn": 12146,
+      "proj": 210,
+      "fc1": 791,
+      "fc2": 858,
+      "neck": 31
+     },
+     "vsFirst": {
+      "maxRel": 34.35515787175508,
+      "cos": 0.007300007612469629,
+      "absMax": 14.71560287475586,
+      "nonFinite": 0
+     }
+    }
+   ]
+  },
+  "np-perf-5": {
+   "commit": "524fe85a4901a228407e10be059c4e590abe25c4",
+   "variants": [
+    {
+     "name": "FULL default",
+     "tune": {
+      "lin": "tiled",
+      "attn": "tiled",
+      "KT": 16,
+      "RB": 4,
+      "CB": 4,
+      "QB": 1,
+      "AKT": 8,
+      "unroll": true,
+      "direct": true,
+      "tiledBudget": 30000000000
+     },
+     "layers": 0,
+     "ms": 14259.600000023842,
+     "prof": {
+      "embed": 7,
+      "norm": 59,
+      "qkv": 502,
+      "attn": 12139,
+      "proj": 173,
+      "fc1": 667,
+      "fc2": 685,
+      "neck": 27
+     }
+    }
+   ],
+   "parse": {
+    "tune": {
+     "lin": "tiled",
+     "attn": "tiled",
+     "KT": 16,
+     "RB": 4,
+     "CB": 4,
+     "QB": 1,
+     "AKT": 8,
+     "unroll": true,
+     "direct": true,
+     "tiledBudget": 30000000000
+    },
+    "ms": {
+     "encode": 14223.5,
+     "decode": 23107.100000023842
+    },
+    "ntok": 1154,
+    "blocks": 25,
+    "tokens_equal_np_speed_1_page0": true
+   }
+  }
+ }
+}
