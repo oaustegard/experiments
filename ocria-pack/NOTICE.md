@@ -1,6 +1,6 @@
 # Notice: OCRia-nano-1 weights in this directory
 
-The model files packed under `web/models/` are derived from **OCRia-nano-1** by **LlamaIndex, Inc.**
+The model files packed under `web/models/` and `web/gpu/models/` are derived from **OCRia-nano-1** by **LlamaIndex, Inc.**
 (<https://huggingface.co/llamaindex/OCRia-nano-1>), and are distributed under the **OCRia-nano-1 Model
 License**, which is based on the AI Pubs Open RAIL-M License v0.1 as modified by LlamaIndex. A copy is in
 [`web/models/LICENSE`](web/models/LICENSE). By downloading or using these files you agree to that licence.
@@ -33,7 +33,10 @@ The original files are LlamaIndex's release on Hugging Face, revision
   float32 scale per row; L = 127 in the shipped packs. Smaller tensors, the
   graphs and all other bytes are unchanged.
 - `rec_latin.onnx` (already int8 in the original), the `*.charset.json` and `*.meta.json` files: unchanged.
-- All files are stored in `OCPK` bundles (`run/pack.py`): the rounded tensors as int8 rows with their
+- `web/gpu/models/` holds the same networks re-exported by `run/export_gpu.py` as an op program
+  (`program.json`) and int8 weights (`weights.bin`, L = 127) for the WebGPU engine in `web/gpu/`;
+  `rec_latin`'s own int8 weights are kept as they are.
+- The files in `web/models/` are stored in `OCPK` bundles (`run/pack.py`): the rounded tensors as int8 rows with their
   scales, every other byte copied as it is. `web/ocria.js` rebuilds files of the original size and layout
   from them when it loads.
 
