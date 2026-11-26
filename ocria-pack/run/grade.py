@@ -22,7 +22,10 @@ from pathlib import Path
 
 # LiteParse block kinds -> views.LABELS. A rule (a drawn line) carries no text and is dropped.
 KINDS = {"heading": "heading", "paragraph": "text", "list_item": "list", "code": "code",
-         "table": "table", "grid_fallback": "table", "figure": "figure"}
+         "table": "table", "grid_fallback": "table", "figure": "figure",
+         # benchmark labels as given (nemotron-parse-pack/run/np_pages.py writes these directly)
+         "text": "text", "list": "list", "page_furniture": "page_furniture", "caption": "caption",
+         "footnote": "footnote", "equation": "equation"}
 
 
 def prediction(rec: dict, wants: tuple[str, ...]) -> dict:

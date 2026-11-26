@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -40,6 +41,10 @@ def convert(rec: dict) -> dict:
     for cls, bb, txt in zip(classes, boxes, texts):
         content = remove_nemotron_formatting(txt).strip()
         if cls == "Table" and content:
+            # The model writes {} (an empty LaTeX group) in a cell that a \multirow above covers; NVIDIA's
+            # latex2html skips a covered cell only when it is empty, so a {} cell shifts the row by one.
+            # web/engine/postprocess.js does the same.
+            content = re.sub(r"(^|&|\\\\)(\s*)\{\}(\s*)(?=&|\\\\|$)", r"\1\2\3", content, flags=re.M)
             try:
                 content = latex_table_to_html(content)
             except Exception:  # noqa: BLE001 - a table the converter can't read stays as the model wrote it

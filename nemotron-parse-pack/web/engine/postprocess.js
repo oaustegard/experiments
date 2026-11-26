@@ -195,6 +195,9 @@ function firstMerged(s) {
 
 function processCell(cell) {
   cell = cell.trim();
+  /* The model writes {} (an empty LaTeX group) in a cell that a \multirow above covers; read it as empty so
+     the rowspan skips it instead of shifting the row right by one cell. */
+  if (cell === "{}") cell = "";
   const m = firstMerged(cell);
   if (m) return { content: processCell(m.content).content, colspan: parseInt(m.colspan ?? "1", 10) || 1, rowspan: parseInt(m.rowspan ?? "1", 10) || 1 };
   cell = cell.replace(/\$([^$]*)\$/g, "$1").replace(/\\textbf{([^}]*)}/g, "<b>$1</b>").replace(/\\textit{([^}]*)}/g, "<i>$1</i>");
