@@ -450,6 +450,86 @@ fn main(
 }
 `;
 
+// The two tiled kernels with their inner loops written out (named scalars instead of indexed local
+// arrays), so the accumulators can live in registers whatever the backend's loop unroller does.
+const seq = (n, f, sep = "\n") => Array.from({ length: n }, (_, i) => f(i)).join(sep);
+const linearTiledUnrolledWGSL = (fmt, K, G, KT, RB, CB) => {
+  const KQ = KT / 4;
+  const src = linearTiledWGSL(fmt, K, G, KT, RB, CB).slice(HEAD.length);
+  const head = src.slice(0, src.indexOf("  var acc: array<f32"));
+  const load = src.slice(src.indexOf("  for (var k0 = 0u;"), src.indexOf("    var a: array<vec4<f32>"));
+  return HEAD + head + seq(RB * CB, (i) => `  var s${i} = 0.0;`) + "\n" + load + `
+    for (var q = 0u; q < ${KQ}u; q = q + 1u) {
+${seq(RB, (i) => `      let a${i} = As[(ly * ${RB}u + ${i}u) * ${KQ}u + q];`)}
+${seq(CB, (j) => `      let b${j} = Bs[(lx * ${CB}u + ${j}u) * ${KQ}u + q];`)}
+${seq(RB * CB, (i) => `      s${i} += dot(a${Math.floor(i / CB)}, b${i % CB});`)}
+    }
+    workgroupBarrier();
+  }
+  var acc: array<f32, ${RB * CB}>;
+${seq(RB * CB, (i) => `  acc[${i}] = s${i};`)}
+` + src.slice(src.indexOf("  for (var i = 0u; i < " + RB + "u; i = i + 1u) {\n    let r = r0 + i;"));
+};
+
+const attnTiledUnrolledWGSL = (H, hd, Dm, QB, KT) => {
+  const HV = hd / 4;
+  return HEAD + `
+@group(0) @binding(2) var<storage, read> Q: array<vec4<f32>>;
+@group(0) @binding(3) var<storage, read> KK: array<vec4<f32>>;
+@group(0) @binding(4) var<storage, read> V: array<vec4<f32>>;
+@group(0) @binding(5) var<storage, read_write> O: array<vec4<f32>>;
+var<workgroup> Ks: array<vec4<f32>, ${KT * HV}>;
+var<workgroup> Vs: array<vec4<f32>, ${KT * HV}>;
+@compute @workgroup_size(64)
+fn main(@builtin(local_invocation_id) lid: vec3<u32>, @builtin(workgroup_id) wid: vec3<u32>) {
+  _ = d.n.x;
+  let li = lid.x;
+  let Tq = p.a.x; let qRow0 = p.a.y; let Tk = p.a.z;
+  let hBase = wid.x * ${HV}u;
+  let qi0 = wid.y * ${64 * QB}u + li * ${QB}u;
+${seq(QB, (b) => `  let qb${b} = (qRow0 + min(qi0 + ${b}u, Tq - 1u)) * ${Dm / 4}u + hBase;
+  var m${b} = -1e30; var z${b} = 0.0;
+${seq(HV, (e) => `  let q${b}_${e} = Q[qb${b} + ${e}u] * ${1 / Math.sqrt(hd)}; var a${b}_${e} = vec4<f32>(0.0);`)}`)}
+  for (var k0 = 0u; k0 < Tk; k0 = k0 + ${KT}u) {
+    for (var idx = li; idx < ${KT * HV}u; idx = idx + 64u) {
+      let kRow = k0 + idx / ${HV}u;
+      if (kRow < Tk) {
+        let kvBase = kRow * ${Dm / 4}u + hBase + idx % ${HV}u;
+        Ks[idx] = KK[kvBase];
+        Vs[idx] = V[kvBase];
+      } else {
+        Ks[idx] = vec4<f32>(0.0);
+        Vs[idx] = vec4<f32>(0.0);
+      }
+    }
+    workgroupBarrier();
+    let jLim = min(${KT}u, Tk - k0);
+    for (var j = 0u; j < jLim; j = j + 1u) {
+      let sb = j * ${HV}u;
+${seq(HV, (e) => `      let k${e} = Ks[sb + ${e}u]; let v${e} = Vs[sb + ${e}u];`)}
+${seq(QB, (b) => `      {
+        let s = ${seq(HV, (e) => `dot(q${b}_${e}, k${e})`, " + ")};
+        if (s > m${b}) {
+          let c = exp(m${b} - s);
+          z${b} *= c;
+          ${seq(HV, (e) => `a${b}_${e} *= c;`, " ")}
+          m${b} = s;
+        }
+        let w = exp(s - m${b});
+        z${b} += w;
+        ${seq(HV, (e) => `a${b}_${e} += w * v${e};`, " ")}
+      }`)}
+    }
+    workgroupBarrier();
+  }
+${seq(QB, (b) => `  if (qi0 + ${b}u < Tq) {
+    let inv = 1.0 / z${b};
+    let ob = (qRow0 + qi0 + ${b}u) * ${Dm / 4}u + hBase;
+    ${seq(HV, (e) => `O[ob + ${e}u] = a${b}_${e} * inv;`, " ")}
+  }`)}
+}`;
+};
+
 // Neck: rows of 4 neighbouring tokens become one conv2 input row in the weight's (channel, kw) order.
 // Y[h * Wn + w, c * 4 + kw] = X[h * Wp + 4 w + kw, c].  a = (C, Wp, Wn, 0); columns past 4 Wn are dropped, as the conv does.
 const REGROUP = HEAD + /* wgsl */ `
@@ -647,7 +727,7 @@ export class NemotronParse {
     this.gen = manifest.generation;
     this.budget = opts.budget || 4e9;
     // Encoder kernel choice and tile shapes; setTune() changes them (benchmarks, A/B checks).
-    this.tune = { lin: "tiled", attn: "tiled", KT: 16, RB: 8, CB: 8, QB: 4, AKT: 16, tiledBudget: 3e10, ...(opts.tune || {}) };
+    this.tune = { lin: "tiled", attn: "tiled", KT: 16, RB: 8, CB: 8, QB: 4, AKT: 16, unroll: false, tiledBudget: 3e10, ...(opts.tune || {}) };
     this._tag = "";
     this.maxBind = Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize);
     this.pipes = {};
@@ -850,7 +930,8 @@ export class NemotronParse {
     if (tn.lin === "tiled" && T >= 8 && !(flags & 4) && K % tn.KT === 0 && tn.KT % 8 === 0 && (w.fmt !== "int4g" || w.G % 8 === 0)
         && (8 * tn.RB + 8 * tn.CB) * tn.KT * 4 <= 16384) {
       const { KT, RB, CB } = tn, tr = 8 * RB, tc = 8 * CB;
-      const kind = `lint_${w.fmt}_${K}_${w.G}_${KT}_${RB}_${CB}`, code = this.pipes[kind] ? null : linearTiledWGSL(w.fmt, K, w.G, KT, RB, CB);
+      const kind = `lint_${w.fmt}_${K}_${w.G}_${KT}_${RB}_${CB}_${tn.unroll ? 1 : 0}`;
+      const code = this.pipes[kind] ? null : (tn.unroll ? linearTiledUnrolledWGSL : linearTiledWGSL)(w.fmt, K, w.G, KT, RB, CB);
       for (const part of w.parts) {
         const a0 = Math.max(n0, part.n0), a1 = Math.min(n0 + N, part.n0 + part.n);
         if (a1 <= a0) continue;
@@ -943,12 +1024,12 @@ export class NemotronParse {
       [b.q, b.k, b.v].forEach((Y, j) => this._linear(s, qkv, b.xn, Y, T, { n0: j * E, N: E, bias: qb }, own));
       this._tag = "attn";
       if (tn.attn === "tiled" && 2 * tn.AKT * hd * 4 <= 16384) {
-        const per = 64 * tn.QB, kind = `attnt_${EH}_${hd}_${E}_${tn.QB}_${tn.AKT}`;
+        const per = 64 * tn.QB, kind = `attnt_${EH}_${hd}_${E}_${tn.QB}_${tn.AKT}_${tn.unroll ? 1 : 0}`;
         const qt = Math.max(per, Math.floor(tn.tiledBudget / (T * EH * hd * 2) / per) * per);
         for (let r = 0; r < T; r += qt) {
           const t = Math.min(qt, T - r);
           this._step(s, kind, { a: [t, r, T, 0], dispatch: [EH, Math.ceil(t / per)] }, [b.q, b.k, b.v, b.xn], 1,
-            this.pipes[kind] ? null : attnTiledWGSL(EH, hd, E, tn.QB, tn.AKT), own);
+            this.pipes[kind] ? null : (tn.unroll ? attnTiledUnrolledWGSL : attnTiledWGSL)(EH, hd, E, tn.QB, tn.AKT), own);
         }
       } else {
         for (let r = 0; r < T; r += qPer) {
