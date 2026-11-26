@@ -3,7 +3,7 @@
 The model files packed under `web/models/` and `web/gpu/models/` are derived from **OCRia-nano-1** by **LlamaIndex, Inc.**
 (<https://huggingface.co/llamaindex/OCRia-nano-1>), and are distributed under the **OCRia-nano-1 Model
 License**, which is based on the AI Pubs Open RAIL-M License v0.1 as modified by LlamaIndex. A copy is in
-[`web/models/LICENSE`](web/models/LICENSE). By downloading or using these files you agree to that licence.
+[`web/models/LICENSE.txt`](web/models/LICENSE.txt). By downloading or using these files you agree to that licence.
 They are not open-source software, and nothing here is endorsed by LlamaIndex.
 
 ## Use restrictions (paragraph 5 and Attachment A of the licence)
