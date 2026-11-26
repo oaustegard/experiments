@@ -17,6 +17,10 @@ anything-to-text as an option beside Indra, which stays the default.
 The model files shrink from 28.0 MB to 7.9 MB gzipped, but the LiteParse runtime adds 5.7 MB from jsdelivr, so a
 first run downloads about 14 MB, against about 6.6 MB for Indra on an English page.
 
+Without LiteParse's runtime, the WebGPU rebuild in `web/gpu/` (WGSL nets plus a JS port of LiteParse's OCR page
+logic) reads text lines 6.0 times faster on Oskar's Mac than the WebAssembly build doing the same OCR-only work, <!-- @evidence[[results/bridge_speed_mac.json#summary.speedup]] -->
+2.6 s against 15.6 s for three pages, and needs 0.97 MB for Latin. It has no LayoutNet, so it returns lines, not tables.
+
 A full run on all 2,937 pages, or Indra rerun without its LaTeX math reader, could move the gap by a point or two.
 
 ## Findings
@@ -31,6 +35,18 @@ A full run on all 2,937 pages, or Indra rerun without its LaTeX math reader, cou
 4. **The page size of a wrapped image changes LiteParse's Markdown.** Its layout rules measure text in points, so
    `web/ocria.js` sizes the one-page PDF for 250 DPI, the benchmark's setting. With 144 DPI the Markdown differed
    on 3 of 3 test pages; with 250 it matched the benchmark harness on 3 of 3.
+
+5. **On a GPU, the page logic is the cost, not the nets.** On the Mac (Chrome 157, Metal 3) the WebGPU path took
+   1.08, 0.30 and 1.22 s per page against 7.25, 4.27 and 4.10 s for LiteParse's WebAssembly with layout off; the
+   nets' share of the GPU path was 337 ms over four pages read (`results/bridge_speed_mac.json`). The rest is the
+   JS crop, warp and decode code.
+6. **The WebGPU path matches onnxruntime net by net, and mostly page by page.** Every net passes its parity check in
+   headless Chromium (`web/gpu/README.md`); on 3 pages the whole path reproduces 176 of 194 onnxruntime line texts
+   verbatim, the rest from the 8-bit pack and `rec_latin`'s quantized arithmetic. The JS page logic alone matches
+   native LiteParse on 99.2% of its text items over 40 pages (`web/page/README.md`).
+7. **The published wasm cannot pair outside OCR with LayoutNet.** `LiteParse.withOcriaNano` ignores a JS
+   `ocrEngine`, and a plain `LiteParse` with one never runs LayoutNet, so tables need LiteParse built from source.
+   tract alone compiles to 4.23 MB gzipped of the wasm's 7.17 MB.
 
 ## Method
 
@@ -49,3 +65,11 @@ the original weights on gray 200 DPI renders of a seeded 600-page sample, of whi
 Asked (Oskar): test OCRia-nano-1, see if it packs, add it to anything-to-text if comparable to Indra and PP-OCRv6
 tiny. Ran the table above. A 7-bit arm, a no-LayoutNet arm and a PP-OCRv6 tiny run were started and stopped
 unfinished when Oskar called the evaluation overkill. The anything-to-text option loads `web/ocria.js`.
+
+### 2026-11-26: WGSL rebuild of the OCR runtime
+
+Asked (Oskar): rebuild their runtime for WGSL, to see how much smaller and faster it gets on a GPU. Two agents built
+`web/gpu/` (exporter, engine, parity tests) and `web/page/` (the JS port, checked against LiteParse's text items on
+40 pages). One GPU bridge job (`run/bridge/ocria_speed.js`) timed both paths on the Mac on three pages after one
+warm-up page each. A first attempt failed because the site build did not publish `.gz` files; `_lib/pages_site.py`
+now ships them.
