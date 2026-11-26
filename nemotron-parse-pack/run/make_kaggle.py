@@ -17,7 +17,7 @@ SCHEMES = {
     "C": [[ENC, "int4g", 32], [SMALL, "int8"], [DEC, "int4g", 32], [EMB, "int4g", 32]],
     "D": [[ENC, "int8"], [SMALL, "int8"], [DEC, "int8"], [EMB, "int8"]],
 }
-ARMSETS = {"pilot": ["fp32", "A", "B", "C", "D"]}
+ARMSETS = {"pilot": ["fp32", "A", "B", "C", "D"], "pilot35": ["fp32", "A", "D"]}
 
 
 def main():
@@ -28,10 +28,11 @@ def main():
     ap.add_argument("--batch", type=int, default=4)
     ap.add_argument("--teacher", default="fp32")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--src", default="kaggle_eval.py", help="kaggle_eval.py (2.0) or kaggle_eval35.py (3.5)")
     a = ap.parse_args()
     names = ARMSETS.get(a.arms) or a.arms.split(",")
     arms = [[n, None if n == "fp32" else SCHEMES[n]] for n in names]
-    src = (Path(__file__).parent / "kaggle_eval.py").read_text()
+    src = (Path(__file__).parent / a.src).read_text()
     for k, v in {"__PAGES__": Path(a.pages).read_text().strip(), "__ARMS__": json.dumps(arms),
                  "__MAX_TOKENS__": str(a.max_tokens), "__BATCH__": str(a.batch),
                  "__TEACHER__": a.teacher if "fp32" in names else ""}.items():
