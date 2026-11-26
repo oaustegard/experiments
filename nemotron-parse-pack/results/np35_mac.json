@@ -1,0 +1,62 @@
+{
+ "device": "Mac (apple metal-3, Chrome 157), GPU bridge job np35-speed-2",
+ "commit": "de10e759b8daf05bb1ceb47f56743d550ef2d434",
+ "pack": "v35 (run/scheme_v35.json)",
+ "loadMs": 23181.399999976158,
+ "runs": [
+  {
+   "name": "full",
+   "ms": {
+    "encode": 8713.899999976158,
+    "prefill": 237.89999997615814,
+    "decode": 18353.100000023842
+   },
+   "ntok": 1036,
+   "blocks": 25,
+   "tokPerSec": 56.44822945435126,
+   "prefixRows": 3201,
+   "encTokens": 12810
+  },
+  {
+   "name": "half 1024x832",
+   "ms": {
+    "encode": 1980.5,
+    "prefill": 44,
+    "decode": 2673.100000023842
+   },
+   "ntok": 300,
+   "blocks": 7,
+   "tokPerSec": 112.22924694075202,
+   "prefixRows": 833,
+   "encTokens": 3338
+  },
+  {
+   "name": "profile full",
+   "prof": {
+    "embed": 7,
+    "norm": 55,
+    "qkv": 330,
+    "attn": 6592,
+    "proj": 119,
+    "fc1": 417,
+    "fc2": 426,
+    "neck": 9,
+    "prefill": 162
+   },
+   "ms": 8123.200000047684,
+   "grid": [
+    2048,
+    1600,
+    2048,
+    1583
+   ]
+  }
+ ],
+ "half_vs_pytorch_cpu": {
+  "canvas": "1024x832",
+  "tokens": 300,
+  "identical": true,
+  "first_diff": null,
+  "text_ratio": 1.0
+ }
+}
