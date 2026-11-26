@@ -471,8 +471,9 @@ ${seq(RB * CB, (i) => `  acc[${i}] = s${i};`)}
 ` + src.slice(src.indexOf("  for (var i = 0u; i < " + RB + "u; i = i + 1u) {\n    let r = r0 + i;"));
 };
 
-const attnTiledUnrolledWGSL = (H, hd, Dm, QB, KT) => {
+const attnTiledUnrolledWGSL = (H, hd, Dm, QB, KT, direct) => {
   const HV = hd / 4;
+  const kk = (e) => (direct ? `Ks[sb + ${e}u]` : `k${e}`), vv = (e) => (direct ? `Vs[sb + ${e}u]` : `v${e}`);   // direct: no local copy of the key
   return HEAD + `
 @group(0) @binding(2) var<storage, read> Q: array<vec4<f32>>;
 @group(0) @binding(3) var<storage, read> KK: array<vec4<f32>>;
@@ -506,9 +507,9 @@ ${seq(HV, (e) => `  let q${b}_${e} = Q[qb${b} + ${e}u] * ${1 / Math.sqrt(hd)}; v
     let jLim = min(${KT}u, Tk - k0);
     for (var j = 0u; j < jLim; j = j + 1u) {
       let sb = j * ${HV}u;
-${seq(HV, (e) => `      let k${e} = Ks[sb + ${e}u]; let v${e} = Vs[sb + ${e}u];`)}
+${direct ? "" : seq(HV, (e) => `      let k${e} = Ks[sb + ${e}u]; let v${e} = Vs[sb + ${e}u];`)}
 ${seq(QB, (b) => `      {
-        let s = ${seq(HV, (e) => `dot(q${b}_${e}, k${e})`, " + ")};
+        let s = ${seq(HV, (e) => `dot(q${b}_${e}, ${kk(e)})`, " + ")};
         if (s > m${b}) {
           let c = exp(m${b} - s);
           z${b} *= c;
@@ -517,7 +518,7 @@ ${seq(QB, (b) => `      {
         }
         let w = exp(s - m${b});
         z${b} += w;
-        ${seq(HV, (e) => `a${b}_${e} += w * v${e};`, " ")}
+        ${seq(HV, (e) => `a${b}_${e} += w * ${vv(e)};`, " ")}
       }`)}
     }
     workgroupBarrier();
@@ -527,6 +528,85 @@ ${seq(QB, (b) => `  if (qi0 + ${b}u < Tq) {
     let ob = (qRow0 + qi0 + ${b}u) * ${Dm / 4}u + hBase;
     ${seq(HV, (e) => `O[ob + ${e}u] = a${b}_${e} * inv;`, " ")}
   }`)}
+}`;
+};
+
+// Attention as three matmul-shaped passes over a chunk of queries (tune.attn = "mat"): scores into a
+// buffer [query, head, key], softmax in place, then the weighted sum of values. Each thread keeps only
+// a few accumulators, like the row linear kernel. Tk4 = Tk rounded up to 4 is the score row stride.
+// a = (queries in this chunk, first query row, Tk, Tk4)
+// Scores: one thread per (query, head, 8 keys).
+const attnScoreWGSL = (H, hd, Dm) => {
+  const HV = hd / 4;
+  return HEAD + `
+@group(0) @binding(2) var<storage, read> Q: array<vec4<f32>>;
+@group(0) @binding(3) var<storage, read> KK: array<vec4<f32>>;
+@group(0) @binding(4) var<storage, read_write> SC: array<f32>;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let i = g.x + g.y * p.c.x;
+  if (i >= p.c.y) { return; }
+  let Tk = p.a.z;
+  let JB = (Tk + 7u) / 8u;
+  let jb = i % JB; let rest = i / JB;
+  let h = rest % ${H}u; let q = rest / ${H}u;
+  let qo = (p.a.y + q) * ${Dm / 4}u + h * ${HV}u;
+${seq(HV, (e) => `  let q${e} = Q[qo + ${e}u] * ${1 / Math.sqrt(hd)};`)}
+  let so = (q * ${H}u + h) * p.a.w;
+  for (var t = 0u; t < 8u; t++) {
+    let j = jb * 8u + t;
+    if (j < Tk) {
+      let ko = j * ${Dm / 4}u + h * ${HV}u;
+      SC[so + j] = ${seq(HV, (e) => `dot(q${e}, KK[ko + ${e}u])`, " + ")};
+    }
+  }
+  _ = d.n.x;
+}`;
+};
+// Softmax of each (query, head) row in place, left unnormalized; 1 / sum goes to ZI. Padding keys get 0.
+const attnSoftmaxWGSL = (H) => HEAD + `
+@group(0) @binding(2) var<storage, read_write> SC: array<f32>;
+@group(0) @binding(3) var<storage, read_write> ZI: array<f32>;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let i = g.x + g.y * p.c.x;
+  if (i >= p.c.y) { return; }
+  let Tk = p.a.z;
+  let so = i * p.a.w;
+  var m = -1e30;
+  for (var j = 0u; j < Tk; j++) { m = max(m, SC[so + j]); }
+  var z = 0.0;
+  for (var j = 0u; j < Tk; j++) { let w = exp(SC[so + j] - m); SC[so + j] = w; z += w; }
+  for (var j = Tk; j < p.a.w; j++) { SC[so + j] = 0.0; }
+  ZI[i] = 1.0 / z;
+  _ = d.n.x;
+}`;
+// Mix: one thread per (block of QM queries, head, vec4 of the head's values) walks the keys 4 at a time.
+const attnMixWGSL = (H, hd, Dm, QM) => {
+  const HV = hd / 4;
+  return HEAD + `
+@group(0) @binding(2) var<storage, read> SC: array<vec4<f32>>;
+@group(0) @binding(3) var<storage, read> ZI: array<f32>;
+@group(0) @binding(4) var<storage, read> V: array<vec4<f32>>;
+@group(0) @binding(5) var<storage, read_write> O: array<vec4<f32>>;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let i = g.x + g.y * p.c.x;
+  if (i >= p.c.y) { return; }
+  let Tq = p.a.x; let Tk = p.a.z; let T4 = p.a.w / 4u;
+  let e = i % ${HV}u; let h = (i / ${HV}u) % ${H}u; let q0 = (i / ${HV * H}u) * ${QM}u;
+${seq(QM, (t) => `  let r${t} = (min(q0 + ${t}u, Tq - 1u) * ${H}u + h) * T4; var a${t} = vec4<f32>(0.0);`)}
+  let vo = h * ${HV}u + e;
+  for (var j4 = 0u; j4 < T4; j4++) {
+    let j = j4 * 4u;
+    let v0 = V[min(j, Tk - 1u) * ${Dm / 4}u + vo];
+    let v1 = V[min(j + 1u, Tk - 1u) * ${Dm / 4}u + vo];
+    let v2 = V[min(j + 2u, Tk - 1u) * ${Dm / 4}u + vo];
+    let v3 = V[min(j + 3u, Tk - 1u) * ${Dm / 4}u + vo];
+${seq(QM, (t) => `    { let w = SC[r${t} + j4]; a${t} += w.x * v0 + w.y * v1 + w.z * v2 + w.w * v3; }`)}
+  }
+${seq(QM, (t) => `  if (q0 + ${t}u < Tq) { O[(p.a.y + q0 + ${t}u) * ${Dm / 4}u + vo] = a${t} * ZI[(q0 + ${t}u) * ${H}u + h]; }`)}
+  _ = d.n.x;
 }`;
 };
 
@@ -727,7 +807,7 @@ export class NemotronParse {
     this.gen = manifest.generation;
     this.budget = opts.budget || 4e9;
     // Encoder kernel choice and tile shapes; setTune() changes them (benchmarks, A/B checks).
-    this.tune = { lin: "tiled", attn: "tiled", KT: 16, RB: 8, CB: 8, QB: 4, AKT: 16, unroll: false, tiledBudget: 3e10, ...(opts.tune || {}) };
+    this.tune = { lin: "tiled", attn: "tiled", KT: 16, RB: 8, CB: 8, QB: 4, AKT: 16, unroll: false, direct: false, tiledBudget: 3e10, QM: 8, matBytes: 1 << 27, ...(opts.tune || {}) };
     this._tag = "";
     this.maxBind = Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize);
     this.pipes = {};
@@ -1012,6 +1092,9 @@ export class NemotronParse {
     this._linear(s, W(R + "patch_generator.embedder.weight"), b.patches, b.x, Tp, { flags: 2, yRow0: PRE }, own);
     stages.push(s);
     const attnKind = `attn_${EH}_${E / EH}_${E}`, tn = this.tune, hd = E / EH;
+    const T4 = Math.ceil(T / 4) * 4;
+    const matQ = Math.max(1, Math.min(T, Math.floor(Math.min(this.maxBind, tn.matBytes) / (EH * T4 * 4))));
+    if (tn.attn === "mat") { b.sc = this._buf(matQ * EH * T4, "sc", own); b.zi = this._buf(matQ * EH, "zi", own); }
     const qPer = Math.max(QB, Math.floor(this.budget / (T * EH * (E / EH) * 2) / QB) * QB);
     for (let l = 0; l < dm.enc_layers; l++) {
       const L = `${R}blocks.${l}.`;
@@ -1023,13 +1106,20 @@ export class NemotronParse {
       this._tag = "qkv";
       [b.q, b.k, b.v].forEach((Y, j) => this._linear(s, qkv, b.xn, Y, T, { n0: j * E, N: E, bias: qb }, own));
       this._tag = "attn";
-      if (tn.attn === "tiled" && 2 * tn.AKT * hd * 4 <= 16384) {
-        const per = 64 * tn.QB, kind = `attnt_${EH}_${hd}_${E}_${tn.QB}_${tn.AKT}_${tn.unroll ? 1 : 0}`;
+      if (tn.attn === "mat") {
+        for (let r = 0; r < T; r += matQ) {
+          const t = Math.min(matQ, T - r), a = [t, r, T, T4];
+          this._step(s, `asc_${EH}_${hd}_${E}`, { a }, [b.q, b.k, b.sc], t * EH * Math.ceil(T / 8), attnScoreWGSL(EH, hd, E), own);
+          this._step(s, `asm_${EH}`, { a }, [b.sc, b.zi], t * EH, attnSoftmaxWGSL(EH), own);
+          this._step(s, `amx_${EH}_${hd}_${E}_${tn.QM}`, { a }, [b.sc, b.zi, b.v, b.xn], Math.ceil(t / tn.QM) * EH * (hd / 4), attnMixWGSL(EH, hd, E, tn.QM), own);
+        }
+      } else if (tn.attn === "tiled" && 2 * tn.AKT * hd * 4 <= 16384) {
+        const per = 64 * tn.QB, kind = `attnt_${EH}_${hd}_${E}_${tn.QB}_${tn.AKT}_${tn.unroll ? 1 : 0}_${tn.direct ? 1 : 0}`;
         const qt = Math.max(per, Math.floor(tn.tiledBudget / (T * EH * hd * 2) / per) * per);
         for (let r = 0; r < T; r += qt) {
           const t = Math.min(qt, T - r);
           this._step(s, kind, { a: [t, r, T, 0], dispatch: [EH, Math.ceil(t / per)] }, [b.q, b.k, b.v, b.xn], 1,
-            this.pipes[kind] ? null : (tn.unroll ? attnTiledUnrolledWGSL : attnTiledWGSL)(EH, hd, E, tn.QB, tn.AKT), own);
+            this.pipes[kind] ? null : (tn.unroll ? attnTiledUnrolledWGSL : attnTiledWGSL)(EH, hd, E, tn.QB, tn.AKT, tn.direct), own);
         }
       } else {
         for (let r = 0; r < T; r += qPer) {
