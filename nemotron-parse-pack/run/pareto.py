@@ -7,7 +7,7 @@ all scored on the same 250-page sample (run/sample250.txt) with omni-parse-bench
 results/pareto.json: {"models": [{"name", "mb", "text", "headline", "shipped"}]}. Download sizes are what the
 page fetches on first use for an English page (compressed bytes on the wire). Models with shipped false are packs
 that were measured but are not what the page loads; they are drawn hollow and left off the frontier.
-Left panel: the text family (is the page's text there, in order, not repeated). Right panel: the headline (mean
+Left panel: the text family (passages present, in order, not repeated). Right panel: the headline (mean
 of text, tables and layout), which plain-text OCR models cannot score on beyond text.
 """
 import json
@@ -75,8 +75,8 @@ def main(src, dst, stack=False):
         plt.rcParams.update({"font.size": 11})
     fig, axes = (plt.subplots(2, 1, figsize=(7, 10), dpi=200) if stack
                  else plt.subplots(1, 2, figsize=(12, 5.2), dpi=200, sharey=True))
-    panel(axes[0], ms, "text", "Text: is the page's text there, in order")
-    panel(axes[1], ms, "headline", "Overall: text, tables and layout")
+    panel(axes[0], ms, "text", "Text score: passages present, in order, not repeated")
+    panel(axes[1], ms, "headline", "Overall score: mean of text, tables and layout")
     for ax in (axes if stack else axes[:1]):
         ax.set_ylabel("Omni Parse Bench score (% of tests passed)", color=INK2, fontsize=9)
     fig.suptitle("OCR models on anything-to-text: download size against accuracy", x=0.01, ha="left",
