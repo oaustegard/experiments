@@ -43,7 +43,33 @@ counts are committed.
   capping templated duplicates at 3 per session. Median context 76K tokens, p90 171K
   (`results/prep.json`).
 - `teach.py`: Jev scores every chunk of every usable delegation (the shipped flat
-  scorer at 4x view): about 165K Jev tokens and 2 s per delegation, about $2 in all.
+  scorer at 4x view). **Done 2026-11-27: 301 delegations, 35,143 chunks scored, no
+  errors, $1.32 of Jev** (105 delegations ran twice by accident; the first label of
+  each is kept). The labels and task text live on the private `ctxfilter-data` branch
+  of `oaustegard/claude-workspace`, not here.
+- Two things the run found. The shipped filter treats Jev's HTTP 400
+  `max_tokens_exceeded` as retryable and gives up on the whole delegation after
+  ~90 s. Its 3.3 chars/token estimate undercounts dense text such as hex, so some
+  windows overflow. `teach.py` bisects such a window instead, as the filter already
+  does for WAF blocks. The fix belongs in the `delegating-with-context` skill too.
+  Separately, TypeSafe's 100K tokens/s limit stalls 8 concurrent 30K-token windows,
+  so `--workers 2` (4 calls in flight) is the setting that ran.
+
+## Status: baselines measured, student not yet trained
+
+Teacher agreement on the 45 test delegations (20 sessions), non-user chunks
+(`results/agreement_test.json`):
+
+| arm | recall of Jev's chunks at 5K / 10K / 20K | quality at 5K / 10K / 20K |
+|---|---|---|
+| recency | 0.370 / 0.433 / 0.572 | 0.708 / 0.740 / 0.779 |
+| bm25 | 0.250 / 0.302 / 0.424 | 0.754 / 0.760 / 0.782 |
+
+Quality is the token-weighted mean Jev score of what an arm keeps, relative to
+Jev's own selection. Jev keeps a median 7, 10 and 16 non-user chunks at the three
+budgets. Over all 301 delegations the ordering is the same (recency 0.422 at 5K,
+BM25 0.302: `results/agreement_all.json`). Recency beating BM25 says Jev leans on
+recent chunks, which a student given position as a feature can learn.
 
 ## Arms
 

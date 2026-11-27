@@ -19,6 +19,8 @@ import json
 import os
 import sys
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -29,6 +31,42 @@ sys.path.insert(0, str(experiment("subagent-context-filter")))
 import jevfilter  # noqa: E402
 
 DATA = Path(os.environ.get("EVAL_DATA") or HERE / "data")
+
+# The shipped filter retries an HTTP 400 `max_tokens_exceeded` six times (~90 s) and then
+# fails the whole delegation. Its 3.3 chars/token estimate undercounts dense text (hex,
+# base64), so some windows overflow Jev's limit. Here such a window is bisected like a
+# WAF block, and a single chunk too large on its own gets no score (None), never 0.5.
+jevfilter.BLOCKED_SCORE = None
+
+
+def _call(state, questions, timeout=60):
+    url = "https://api.typesafe.ai/v1/systemone"
+    body = {"model": "jev-latest", "state": state, "questions": questions}
+    headers = {"Authorization": f"Bearer {os.environ['TYPESAFE_API_KEY']}",
+               "Content-Type": "application/json"}
+    last = None
+    for attempt in range(6):
+        req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                res = json.load(r)
+            return ({k: a["noul"] for k, a in res["answers"].items()},
+                    res.get("usage", {}).get("input_tokens", 0))
+        except urllib.error.HTTPError as e:
+            text = e.read().decode(errors="replace")
+            if e.code == 400 and "max_tokens_exceeded" in text:
+                raise jevfilter.Blocked("window over Jev's token limit")
+            if e.code not in (408, 429) and e.code < 500:
+                raise jevfilter.FilterError(f"HTTP {e.code}: {text[:300]}")
+            last = f"HTTP {e.code}"
+            time.sleep(min(30.0, float(e.headers.get("Retry-After") or 0) or 2 * 2 ** attempt))
+        except (urllib.error.URLError, KeyError, ValueError, TimeoutError) as e:
+            last = f"{type(e).__name__}: {str(e)[:200]}"
+            time.sleep(1.5 * 2 ** attempt)
+    raise jevfilter.FilterError(f"Jev call failed after retries: {last}")
+
+
+jevfilter._call = _call
 
 
 def usable(rows):

@@ -6,7 +6,8 @@ User messages are force-kept by `select` for every arm alike, so they are left
 out of the comparison. Two numbers per arm and budget:
 
   chunk_recall  share of the non-user chunks Jev's selection keeps that the arm also keeps
-  mass_recall   Jev-score mass of the arm's non-user chunks over that of Jev's own selection
+  quality       token-weighted mean Jev score of the arm's non-user chunks, over the same
+                for Jev's own selection (1.0 = as relevant, by Jev's lights, per token spent)
 
 Arms whose scores are not probabilities are mapped to rank percentiles, so the
 filter's score floor (0.15) cuts the same bottom share for every arm.
@@ -123,18 +124,28 @@ def main():
             jev_sizes[b].append(len(J))
             if not J:
                 continue
-            jmass = sum(jev.get(k, 0) for k in J)
+            ctxd = {c["id"]: c for c in ctx}
+
+            def wmean(keep, ids):
+                w = {k: jevfilter.tokens(jevfilter.render(ctxd[k], keep[k])) for k in ids}
+                tot = sum(w.values())
+                return sum((jev.get(k) or 0) * w[k] for k in ids) / tot if tot else None
+            jkeep = jevfilter.select(ctx, jev, b)
+            jq = wmean(jkeep, J)
             for arm in res:
                 s = percentiles(ARMS[arm](r["task"], ctx))
-                A = nonuser(ctx, jevfilter.select(ctx, s, b))
+                akeep = jevfilter.select(ctx, s, b)
+                A = nonuser(ctx, akeep)
                 res[arm][b]["chunk"].append(len(A & J) / len(J))
-                res[arm][b]["mass"].append(sum(jev.get(k, 0) for k in A) / jmass if jmass else 0)
+                aq = wmean(akeep, A)
+                if jq and aq is not None:
+                    res[arm][b]["mass"].append(aq / jq)
     out = {"split": args.split, "delegations": len(rows),
            "sessions": len({r["session"] for r in rows}),
            "jev_nonuser_chunks_kept_median": {str(b): statistics.median(v) if v else None
                                               for b, v in jev_sizes.items()},
            "arms": {a: {str(b): {"chunk_recall_mean": round(statistics.mean(d["chunk"]), 3) if d["chunk"] else None,
-                                 "mass_recall_mean": round(statistics.mean(d["mass"]), 3) if d["mass"] else None,
+                                 "quality_mean": round(statistics.mean(d["mass"]), 3) if d["mass"] else None,
                                  "n": len(d["chunk"])}
                         for b, d in per.items()} for a, per in res.items()}}
     (HERE / "results" / f"agreement_{args.split}.json").write_text(json.dumps(out, indent=1))

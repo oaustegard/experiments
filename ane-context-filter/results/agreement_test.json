@@ -1,0 +1,46 @@
+{
+ "split": "test",
+ "delegations": 45,
+ "sessions": 20,
+ "jev_nonuser_chunks_kept_median": {
+  "5000": 7,
+  "10000": 10,
+  "20000": 16
+ },
+ "arms": {
+  "recency": {
+   "5000": {
+    "chunk_recall_mean": 0.37,
+    "quality_mean": 0.708,
+    "n": 45
+   },
+   "10000": {
+    "chunk_recall_mean": 0.433,
+    "quality_mean": 0.74,
+    "n": 45
+   },
+   "20000": {
+    "chunk_recall_mean": 0.572,
+    "quality_mean": 0.779,
+    "n": 45
+   }
+  },
+  "bm25": {
+   "5000": {
+    "chunk_recall_mean": 0.25,
+    "quality_mean": 0.754,
+    "n": 45
+   },
+   "10000": {
+    "chunk_recall_mean": 0.302,
+    "quality_mean": 0.76,
+    "n": 45
+   },
+   "20000": {
+    "chunk_recall_mean": 0.424,
+    "quality_mean": 0.782,
+    "n": 45
+   }
+  }
+ }
+}
