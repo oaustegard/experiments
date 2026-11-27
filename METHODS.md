@@ -5904,6 +5904,24 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   the right bytes.
 - **Pins.** coremltools 8.3.0 with torch 2.5.1 and transformers 4.51.3; transformers 5.x disables itself on
   torch below 2.6.
+- **Ettin-17m's residual stream reaches about 1,100 after centring, and a norm written out by hand squares it past
+  fp16.** Evaluated literally in fp16 (PyTorch `.half()` on CPU), `x * rsqrt(mean(x²) + eps)` put the cross-encoder's
+  logit off by 0.38; dividing the centred input by a constant power of two before squaring (and eps by its square)
+  brought that to 0.003. coremltools 9 recognises the unscaled form and emits `layer_norm` ops (16 of them here; with
+  the pre-scale only 4 of 16 are fused), which is the form `ettin-ane` ran with matching answers, so check an fp16
+  Core ML model against PyTorch on the device before trusting either. Not yet run on a Mac.
+  (`ane-workloads/crossenc_coreml.py` `LN`, `calibrate_norms`)
+- **coremltools 9.0 converts on Linux with torch 2.7.0 (and with an untested 2.14); only prediction and
+  `MLComputePlan` need macOS.** Convert in the container to prove the graph before handing a script to a Mac.
+- **whisper.cpp's Core ML encoder is loaded with `MLComputeUnitsAll`, not pinned to the Neural Engine**
+  (`src/coreml/whisper-encoder.mm`, checked at `79b1191`); `--no-gpu` governs the ggml decoder only. To measure the
+  Neural Engine, change that line to `MLComputeUnitsCPUAndNeuralEngine` before building. WhisperKit's CLI flags are
+  `--audio-encoder-compute-units` and `--text-decoder-compute-units`, and its large-v3-turbo is
+  `large-v3-v20240930_turbo` (`large-v3_turbo` is the full large-v3). (`ane-workloads/README.md`)
+- **`pip install omni-parse-bench` builds `fuzzysearch` from source (it has no wheels).** Wheels-only, as in the
+  hub's jail: install the scorer with `--no-deps`, name its other requirements plus `markdown-it-py`, `httpx` and
+  `openai` (the `[benchmark]` extra), and copy `fuzzysearch`'s pure-Python package from its sdist. With that,
+  `ocria-pack/run/grade.py` scored two run folders on 40 pages. (`ane-workloads/README.md`)
 
 
 ### Packing a small conv-net OCR stack for the browser (indra-browser)
