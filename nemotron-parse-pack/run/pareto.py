@@ -81,9 +81,9 @@ def main(src, dst, stack=False):
         ax.set_ylabel("Omni Parse Bench score (% of tests passed)", color=INK2, fontsize=9)
     fig.suptitle("OCR models on anything-to-text: download size against accuracy", x=0.01, ha="left",
                  color=INK, fontsize=12)
-    fig.text(0.01, 0.01, ("250 Omni Parse Bench pages, the same pages for every model.\nLine: models nothing smaller "
-             "beats. Hollow: packs measured but not shipped.") if stack else ("250 Omni Parse Bench pages, the same pages "
-             "for every model. Line: models nothing smaller beats. Hollow: packs measured but not shipped."),
+    fig.text(0.01, 0.01, ("250 Omni Parse Bench pages, the same pages for every model.\nThe stepped line is the best score available at "
+             "each download size. Hollow: packs measured but not shipped.") if stack else ("250 Omni Parse Bench pages, the same pages "
+             "for every model. The stepped line is the best score available at each download size. Hollow: packs measured but not shipped."),
              fontsize=7.5, color=INK2)
     fig.tight_layout(rect=(0, 0.03, 1, 0.96))
     fig.savefig(dst)
