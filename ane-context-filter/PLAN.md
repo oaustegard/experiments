@@ -55,7 +55,37 @@ counts are committed.
   Separately, TypeSafe's 100K tokens/s limit stalls 8 concurrent 30K-token windows,
   so `--workers 2` (4 calls in flight) is the setting that ran.
 
-## Status: first student trained, no better than recency at picking Jev's chunks
+## Status: two students trained; neither reliably beats recency on Jev overlap
+
+Round 2 (2026-11-27): the listwise loss (`train.py --loss listwise`: each step one
+delegation's chunks, up to 48, KL to the softmax of Jev's logits, plus 0.2x BCE),
+2 epochs, 46 minutes. Also blends of each student's rank with recency's (equal
+weight). Recall of Jev's chunks at 5K / 10K / 20K tokens
+(`results/agreement_val.json`, `results/agreement_test.json`):
+
+| arm | val (23 delegations) | test (45 delegations) |
+|---|---|---|
+| recency | 0.367 / 0.499 / 0.626 | 0.370 / 0.433 / 0.572 |
+| student17 (BCE) | 0.319 / 0.401 / 0.562 | 0.361 / 0.372 / 0.500 |
+| student17lw (listwise) | 0.379 / 0.442 / 0.532 | 0.302 / 0.341 / 0.488 |
+| student17 + recency | 0.388 / 0.519 / 0.647 | 0.348 / 0.404 / 0.538 |
+| student17lw + recency | 0.381 / 0.492 / 0.632 | 0.372 / 0.405 / 0.522 |
+
+The listwise student leads recency on val and trails it by 7 points on test; with
+23 and 45 delegations, swings of that size are noise. No arm separates from recency
+on overlap. Every student arm keeps chunks Jev rates more relevant per token
+(quality 0.77-0.86 against recency's 0.71-0.78), so the students are picking
+different relevant chunks, not irrelevant ones.
+
+What would change the reading: fact recall. Overlap with Jev's exact picks punishes
+a student that picks equally useful substitutes, and Jev itself varies between
+identical calls. The next round should run the `subagent-context-filter`
+fact-recall eval (label.py tasks on the test sessions, executor, adjudicator) for
+recency, Jev and the best student, before more training. If students hold facts as
+well as Jev, overlap was the wrong yardstick; if they do not, the bottleneck is the
+233 training delegations, and synthetic tasks are the way to more data.
+
+## Round 1
 
 Round 1 (2026-11-27): `train.py` defaults, Ettin-17m, 2 epochs on 25,349 pairs,
 38 minutes on 4 CPUs. Test split, 45 delegations (`results/agreement_test.json`):

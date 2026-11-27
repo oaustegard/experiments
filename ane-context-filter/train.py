@@ -9,6 +9,7 @@ as a soft label for BCE. Readout: the [CLS] vector through a small MLP head.
 
 Usage: EVAL_DATA=<private dir> python3 train.py [--init jhu-clsp/ettin-encoder-17m]
          [--epochs 2] [--lr 8e-5] [--bs 16] [--name student17]
+         [--loss listwise --group 48 --groups-per-deleg 2]
 Checkpoints every --ckpt-every steps to <EVAL_DATA>/models/<name>/ and resumes from it.
 After each epoch it scores the val split and writes <EVAL_DATA>/scores/<name>_val.jsonl;
 after the last, the test split too. evaluate.py --scores reads those files.
@@ -131,6 +132,31 @@ def length_batches(data, bs, rng):
     return out
 
 
+def listwise_groups(data, group, per_deleg, rng):
+    """Batches of one delegation's chunks each: its likely-needed chunks (Jev >= 0.5, up to
+    half the group) plus random others, so every step ranks positives against negatives."""
+    by = {}
+    for i, x in enumerate(data):
+        by.setdefault(x["key"], []).append(i)
+    out = []
+    for idx in by.values():
+        pos = [i for i in idx if data[i]["y"] >= 0.5]
+        neg = [i for i in idx if data[i]["y"] < 0.5]
+        for _ in range(per_deleg):
+            p = rng.sample(pos, min(len(pos), group // 2))
+            n = rng.sample(neg, min(len(neg), group - len(p)))
+            if len(p) + len(n) >= 2:
+                out.append(p + n)
+    rng.shuffle(out)
+    return out
+
+
+def listwise_loss(logits, y):
+    t = torch.logit(y.clamp(0.01, 0.99))
+    target = torch.softmax(t, 0)
+    return -(target * torch.log_softmax(logits, 0)).sum()
+
+
 @torch.no_grad()
 def score_split(model, data, pad, path, bs=64):
     model.eval()
@@ -163,6 +189,11 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--ckpt-every", type=int, default=200)
     ap.add_argument("--max-steps", type=int, default=0, help="stop early (smoke test)")
+    ap.add_argument("--loss", choices=["bce", "listwise"], default="bce",
+                    help="listwise: each step is one delegation's chunks, KL to softmax of Jev's logits")
+    ap.add_argument("--group", type=int, default=48, help="chunks per listwise group")
+    ap.add_argument("--groups-per-deleg", type=int, default=2, help="listwise groups per delegation per epoch")
+    ap.add_argument("--bce-weight", type=float, default=0.2, help="listwise: BCE term kept for calibration")
     a = ap.parse_args()
     torch.manual_seed(a.seed)
     rng = random.Random(a.seed)
@@ -175,7 +206,11 @@ def main():
     model = Scorer(a.init)
     opt = torch.optim.AdamW([{"params": model.enc.parameters(), "lr": a.lr},
                              {"params": model.head.parameters(), "lr": a.lr * 10}], weight_decay=0.01)
-    plan = [length_batches(train, a.bs, random.Random(a.seed + e)) for e in range(a.epochs)]
+    if a.loss == "listwise":
+        plan = [listwise_groups(train, a.group, a.groups_per_deleg, random.Random(a.seed + e))
+                for e in range(a.epochs)]
+    else:
+        plan = [length_batches(train, a.bs, random.Random(a.seed + e)) for e in range(a.epochs)]
     total = sum(map(len, plan))
     warm = max(1, total // 20)
     sched = torch.optim.lr_scheduler.LambdaLR(
@@ -199,7 +234,11 @@ def main():
                 continue
             items = [train[i] for i in b]
             ids, att = collate(items, tok.pad_token_id)
-            loss = lossf(model(ids, att), torch.tensor([x["y"] for x in items]))
+            logits, y = model(ids, att), torch.tensor([x["y"] for x in items])
+            if a.loss == "listwise":
+                loss = listwise_loss(logits, y) + a.bce_weight * lossf(logits, y)
+            else:
+                loss = lossf(logits, y)
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             opt.step(); sched.step(); opt.zero_grad()
