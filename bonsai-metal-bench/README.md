@@ -14,6 +14,8 @@ has none.
 On the Mac, plugged in, Energy Mode set to Automatic or High Power:
 
 ```sh
+git clone --depth 1 --filter=blob:none --sparse https://github.com/oaustegard/experiments
+cd experiments && git sparse-checkout set bonsai-metal-bench && cd bonsai-metal-bench
 brew install cmake          # once; Xcode command line tools are also needed
 python3 bench.py            # all phases, about 40–60 min, about 30 GB of downloads into work/
 ```
