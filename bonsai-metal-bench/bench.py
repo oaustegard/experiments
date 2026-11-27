@@ -6,6 +6,7 @@ Run on the Mac, from this directory, plugged in, not in Low Power Mode:
     python3 bench.py                  # everything, ~40-60 min, ~30 GB of downloads
     python3 bench.py --only llama     # llama.cpp phases only
     python3 bench.py --only mlx       # MLX phases only
+    python3 bench.py --only contention  # GPU vs ANE vs CPU contention only
 
 Phases (each records its own errors and the rest carry on):
   env      chip, memory, macOS, power source and mode, GPU wired limit
@@ -16,6 +17,10 @@ Phases (each records its own errors and the rest carry on):
            - prefill ubatch sweep 256..2048 at 8192 tokens (where ms/token stops falling)
   mtp      llama-server on the PQ2_0-mtp file, the released Metal preset, MTP off vs on,
            six real prompts, greedy, plus one ~8K-token prefill prompt
+  contention  llama-bench pp2048 + tg128 on PQ2_0 alone, then with background loads: a
+           synthetic Core ML encoder on the ANE, CPU memory streaming, CPU NEON math,
+           Accelerate sgemm (AMX/SME), and ANE + memory streaming together; records how
+           much each load slows the GPU and how much the GPU slows each load
   mlx      the prism-ml MLX pack (affine 2-bit) through its bundled loader: prefill and
            decode at 512 / 2048 / 8192 / 32768, and its MTP head off vs on
 
@@ -363,6 +368,269 @@ def phase_mtp(out, raw, args):
     return res
 
 
+# ---------------------------------------------------------------- contention (GPU vs ANE vs CPU)
+
+# A synthetic encoder in the ANE layout (1, C, 1, S): 1x1 convs for the MLP, matmul attention,
+# channel layer norm. About the size of a small BERT embedder (6 layers, width 384, 256 tokens).
+ANE_C, ANE_H, ANE_S, ANE_L = 384, 1536, 256, 6
+ANE_SHAPE = [1, ANE_C, 1, ANE_S]
+
+ANE_BUILD = r'''
+import json, sys, time, statistics
+import numpy as np
+out_pkg, out_json = sys.argv[1], sys.argv[2]
+C, H, S, L = (int(v) for v in sys.argv[3:7])
+res = {}
+try:
+    import coremltools as ct
+    from coremltools.converters.mil import Builder as mb
+    res["coremltools"] = ct.__version__
+    rng = np.random.default_rng(0)
+    w = lambda *s: (rng.standard_normal(s) * 0.02).astype(np.float32)
+
+    @mb.program(input_specs=[mb.TensorSpec(shape=(1, C, 1, S))], opset_version=ct.target.macOS14)
+    def prog(x):
+        for _ in range(L):
+            h = mb.gelu(x=mb.conv(x=x, weight=w(H, C, 1, 1)))
+            x = mb.add(x=x, y=mb.conv(x=h, weight=w(C, H, 1, 1)))
+            q = mb.reshape(x=x, shape=[1, C, S])
+            s = mb.mul(x=mb.matmul(x=q, y=q, transpose_x=True), y=np.float32(C ** -0.5))
+            o = mb.matmul(x=q, y=mb.softmax(x=s, axis=-1), transpose_y=True)
+            x = mb.layer_norm(x=mb.add(x=x, y=mb.reshape(x=o, shape=[1, C, 1, S])), axes=[1])
+        return x
+
+    m = ct.convert(prog, convert_to="mlprogram", compute_precision=ct.precision.FLOAT16,
+                   minimum_deployment_target=ct.target.macOS14)
+    m.save(out_pkg)
+    res["gflop_per_call"] = round(L * (2 * S * 2 * C * H + 2 * 2 * S * S * C) / 1e9, 3)
+    x = {"x": np.random.rand(1, C, 1, S).astype(np.float32)}
+    units = {"cpu_only": ct.ComputeUnit.CPU_ONLY, "cpu_gpu": ct.ComputeUnit.CPU_AND_GPU,
+             "cpu_ne": ct.ComputeUnit.CPU_AND_NE}
+    for name, cu in units.items():
+        t = time.perf_counter()
+        mm = ct.models.MLModel(out_pkg, compute_units=cu)
+        load = time.perf_counter() - t
+        for _ in range(5):
+            mm.predict(x)
+        ts = []
+        for _ in range(40):
+            t = time.perf_counter(); mm.predict(x); ts.append(time.perf_counter() - t)
+        res[name] = {"load_s": round(load, 2), "ms_median": round(1e3 * statistics.median(ts), 3)}
+    try:  # which unit each op is placed on (macOS 14.4+, coremltools 8+)
+        from coremltools.models.compute_plan import MLComputePlan
+        compiled = ct.models.MLModel(out_pkg, compute_units=ct.ComputeUnit.CPU_AND_NE)\
+            .get_compiled_model_path()
+        plan = MLComputePlan.load_from_path(path=compiled, compute_units=ct.ComputeUnit.CPU_AND_NE)
+        counts = {}
+        for fn in plan.model_structure.program.functions.values():
+            for op in fn.block.operations:
+                u = plan.get_compute_device_usage_for_mlprogram_operation(op)
+                d = type(u.preferred_compute_device).__name__ if u else "none"
+                counts[d] = counts.get(d, 0) + 1
+        res["placement"] = counts
+    except Exception as e:
+        res["placement_error"] = repr(e)
+except Exception as e:
+    res["error"] = repr(e)
+open(out_json, "w").write(json.dumps(res, indent=1))
+'''
+
+# One background load. Writes <out>.ready once set up, loops until the stop file exists, and
+# dumps (wall time, units of work) per iteration so the caller can compare the rate before
+# and during the GPU benchmark.
+LOAD_WORKER = r'''
+import json, os, sys, time
+import numpy as np
+mode, stop, out = sys.argv[1], sys.argv[2], sys.argv[3]
+ticks = []
+if mode == "cpu_mem":        # stream 512 MiB -> 512 MiB: DRAM bandwidth, the GPU's resource
+    a = np.ones(128 * 2**20, dtype=np.float32); b = np.ones_like(a)
+    step = lambda: (np.copyto(b, a), 2 * a.nbytes)[1]
+elif mode == "cpu_compute":  # NEON math on 256 KiB: cores busy, little DRAM traffic
+    a = np.random.rand(1 << 16).astype(np.float32)
+    def step():
+        global a
+        for _ in range(50):
+            a = np.sin(a)
+        return 50 * a.size
+elif mode == "cpu_matmul":   # 512x512 sgemm via Accelerate: the AMX/SME matrix units
+    a = np.random.rand(512, 512).astype(np.float32); b = a.copy()
+    def step():
+        for _ in range(20):
+            a @ b
+        return 20 * 2 * 512 ** 3
+elif mode == "ane":
+    import coremltools as ct
+    m = ct.models.MLModel(sys.argv[4], compute_units=ct.ComputeUnit.CPU_AND_NE)
+    x = {"x": np.random.rand(*json.loads(sys.argv[5])).astype(np.float32)}
+    m.predict(x)
+    step = lambda: (m.predict(x), 1)[1]
+step()
+open(out + ".ready", "w").write("1")
+while not os.path.exists(stop):
+    n = step()
+    ticks.append((time.time(), n))
+open(out, "w").write(json.dumps(ticks))
+'''
+
+LOAD_UNITS = {"cpu_mem": ("GB/s", 1e9), "cpu_compute": ("Melem/s", 1e6),
+              "cpu_matmul": ("GFLOP/s", 1e9), "ane": ("calls/s", 1.0)}
+
+
+def window_rate(ticks, t_a, t_b):
+    units = sum(n for t, n in ticks if t_a <= t < t_b)
+    return units / (t_b - t_a) if t_b > t_a else None
+
+
+def run_condition(name, loads, bindir, model, py, cdir, pkg, raw, args):
+    stop = cdir / f"stop-{name}"
+    if stop.exists():
+        stop.unlink()
+    env = dict(os.environ, VECLIB_MAXIMUM_THREADS="1", OMP_NUM_THREADS="1")
+    procs, outs = [], []
+    for i, mode in enumerate(loads):
+        o = cdir / f"{name}-{i}-{mode}.json"
+        for f in (o, Path(str(o) + ".ready")):
+            if f.exists():
+                f.unlink()
+        cmd = [str(py), str(cdir / "load.py"), mode, str(stop), str(o)]
+        if mode == "ane":
+            cmd += [str(pkg), json.dumps(ANE_SHAPE)]
+        err = open(cdir / f"{name}-{i}.err", "w")
+        procs.append(subprocess.Popen(cmd, env=env, stdout=subprocess.DEVNULL, stderr=err))
+        outs.append((mode, o))
+    res = {"loads": sorted(set(loads)), "n_procs": len(loads)}
+    try:
+        t0 = time.time()
+        while not all(Path(str(o) + ".ready").exists() for _, o in outs):
+            if any(p.poll() is not None for p in procs):
+                return {"error": f"a load process exited early, see {cdir}/{name}-*.err"}
+            if time.time() - t0 > 300:
+                return {"error": "loads not ready in 300 s"}
+            time.sleep(0.5)
+        t_ready = time.time()
+        time.sleep(args.contention_warm)  # the loads alone: their reference rate
+        t_a = time.time()
+        b = llama_bench(bindir, model, ["-p", "2048", "-n", "128", "-r", "3"],
+                        raw / f"contention-{name}.json", timeout=1800)
+        t_b = time.time()
+        rows = b.get("rows")
+        res.update({"pp2048": best(rows, n_prompt=2048), "tg128": best(rows, n_gen=128),
+                    "bench_error": b.get("error"), "bench_wall_s": round(t_b - t_a, 1)})
+    finally:
+        stop.touch()
+        for p in procs:
+            try:
+                p.wait(timeout=60)
+            except subprocess.TimeoutExpired:
+                p.kill()
+    if loads:
+        bg = {}
+        for mode, o in outs:
+            if not o.exists():
+                continue
+            ticks = json.loads(o.read_text())
+            unit, scale = LOAD_UNITS[mode]
+            d = bg.setdefault(mode, {"unit": unit, "alone": 0.0, "during": 0.0})
+            d["alone"] += (window_rate(ticks, t_ready, t_a) or 0) / scale
+            d["during"] += (window_rate(ticks, t_a, t_b) or 0) / scale
+        for d in bg.values():
+            d["alone"], d["during"] = round(d["alone"], 2), round(d["during"], 2)
+        res["background"] = bg
+    return res
+
+
+def phase_contention(out, raw, args):
+    """GPU decode and prefill alone, then with the ANE and the CPU loaded alongside."""
+    bindir, commit = build_fork()
+    model = hf_download(GGUF_REPO, GGUFS["PQ2_0"], WORK / "gguf")
+    py = ensure_venv()
+    cdir = WORK / "contention"
+    cdir.mkdir(exist_ok=True)
+    (cdir / "ane_build.py").write_text(ANE_BUILD)
+    (cdir / "load.py").write_text(LOAD_WORKER)
+    res = {"fork_commit": commit}
+    pkg = cdir / "synthetic.mlpackage"
+    rc, _, err = run([str(py), "-m", "pip", "install", "-q", "numpy", "coremltools"],
+                     timeout=1800)
+    if rc != 0:
+        res["ane_setup"] = {"error": "pip install coremltools failed: " + err[-600:]}
+    else:
+        log("building the synthetic Core ML encoder and timing it per compute unit")
+        dest = raw / "ane-build.json"
+        _, _, err = run([str(py), str(cdir / "ane_build.py"), str(pkg), str(dest),
+                         str(ANE_C), str(ANE_H), str(ANE_S), str(ANE_L)], timeout=1800)
+        res["ane_setup"] = (json.loads(dest.read_text()) if dest.exists()
+                            else {"error": "build produced no output: " + err[-600:]})
+    ane_ok = "error" not in res["ane_setup"] and pkg.exists()
+    nproc = args.contention_procs or int(sh(["sysctl", "-n", "hw.perflevel0.physicalcpu"]) or 4)
+    res["cpu_procs"] = nproc
+    conditions = [
+        ("baseline", []),
+        ("ane", ["ane"]),
+        ("cpu_mem", ["cpu_mem"] * nproc),
+        ("cpu_compute", ["cpu_compute"] * nproc),
+        ("cpu_matmul", ["cpu_matmul"] * nproc),
+        ("ane+cpu_mem", ["ane"] + ["cpu_mem"] * nproc),
+        ("baseline_end", []),
+    ]
+    for name, loads in conditions:
+        if "ane" in loads and not ane_ok:
+            res[name] = {"skipped": "no ANE model (see ane_setup)"}
+            continue
+        log(f"contention: {name}")
+        try:
+            res[name] = run_condition(name, loads, bindir, model, py, cdir, pkg, raw, args)
+        except Exception as e:
+            res[name] = {"error": repr(e)}
+        time.sleep(args.cooldown)
+    return res
+
+
+def summarize_contention(C):
+    lines = ["## Contention: GPU (llama-bench, PQ2_0) with the ANE and CPU loaded", ""]
+    if "error" in C:
+        return lines + [f"failed: {C['error']}", ""]
+    a = C.get("ane_setup") or {}
+    if "error" in a:
+        lines.append(f"ANE model: failed ({a['error'][:300]})")
+    else:
+        per = ", ".join(f"{k} {a[k]['ms_median']} ms" for k in ("cpu_only", "cpu_gpu", "cpu_ne")
+                        if isinstance(a.get(k), dict))
+        lines.append(f"Synthetic encoder ({a.get('gflop_per_call')} GFLOP/call): {per}. "
+                     f"Op placement with CPU_AND_NE: {a.get('placement') or a.get('placement_error')}")
+    lines.append("")
+    b_pp = [C[k]["pp2048"] for k in ("baseline", "baseline_end")
+            if isinstance(C.get(k), dict) and C[k].get("pp2048")]
+    b_tg = [C[k]["tg128"] for k in ("baseline", "baseline_end")
+            if isinstance(C.get(k), dict) and C[k].get("tg128")]
+    ref_pp = statistics.mean(b_pp) if b_pp else None
+    ref_tg = statistics.mean(b_tg) if b_tg else None
+    pct = lambda v, r: f"{100 * (v / r - 1):+.1f}%" if v and r else "–"
+    fmt = lambda v: f"{v:.1f}" if isinstance(v, (int, float)) else "–"
+    lines.append(f"CPU load processes: {C.get('cpu_procs')}. Baseline is the mean of the first "
+                 "and last runs; their gap shows thermal drift.")
+    lines.append("")
+    lines.append("| condition | pp2048 tok/s | vs base | tg128 tok/s | vs base | "
+                 "background alone → during the GPU run |")
+    lines.append("|---|---:|---:|---:|---:|---|")
+    for name in ("baseline", "ane", "cpu_mem", "cpu_compute", "cpu_matmul", "ane+cpu_mem",
+                 "baseline_end"):
+        r = C.get(name) or {}
+        if "skipped" in r or "error" in r:
+            lines.append(f"| {name} | {r.get('skipped') or r.get('error')[:120]} | | | | |")
+            continue
+        bg = "; ".join(f"{m}: {d['alone']} → {d['during']} {d['unit']}"
+                       for m, d in (r.get("background") or {}).items()) or "–"
+        lines.append(f"| {name} | {fmt(r.get('pp2048'))} | {pct(r.get('pp2048'), ref_pp)} | "
+                     f"{fmt(r.get('tg128'))} | {pct(r.get('tg128'), ref_tg)} | {bg} |")
+    lines.append("")
+    lines.append("The 'during' rate covers llama-bench's whole run, including its model load, "
+                 "when the GPU is idle, so it slightly understates the slowdown of the loads.")
+    lines.append("")
+    return lines
+
+
 # ---------------------------------------------------------------- MLX (runs in the venv)
 
 MLX_WORKER = r'''
@@ -561,6 +829,8 @@ def summarize(S):
             lines.append(f"| {k} | {r.get('decode_tok_s_median')} | "
                          f"{r.get('prefill_8k_tok_s_median')} | {r.get('draft_acceptance')} |")
         lines.append(f"\nMTP decode ratio: **{M.get('mtp_decode_ratio')}**\n")
+    if S.get("contention"):
+        lines += summarize_contention(S["contention"])
     X = S.get("mlx") or {}
     if X:
         lines.append(f"## MLX pack (mlx {X.get('mlx_version')})")
@@ -591,7 +861,7 @@ def summarize(S):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--only", choices=["env", "bw", "llama", "mtp", "mlx"], action="append",
+    ap.add_argument("--only", choices=["env", "bw", "llama", "mtp", "contention", "mlx"], action="append",
                     help="run only these phases (repeatable); default all")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--depths", default="0,8192,32768", help="llama-bench decode depths")
@@ -599,6 +869,10 @@ def main():
     ap.add_argument("--mtp-rounds", type=int, default=2)
     ap.add_argument("--cooldown", type=int, default=30, help="seconds between heavy phases")
     ap.add_argument("--port", type=int, default=18931)
+    ap.add_argument("--contention-procs", type=int, default=0,
+                    help="CPU load processes (default: performance-core count)")
+    ap.add_argument("--contention-warm", type=int, default=8,
+                    help="seconds the loads run alone before the GPU benchmark starts")
     ap.add_argument("--skip-mtp", action="store_true", help="skip the MLX MTP A/B")
     ap.add_argument("--ubatch-all", action="store_true", help="ubatch sweep on PTQ1_0 too")
     ap.add_argument("--force", action="store_true",
@@ -607,7 +881,7 @@ def main():
 
     if platform.system() != "Darwin" or platform.machine() != "arm64":
         sys.exit("This benchmark is for Apple Silicon macOS.")
-    phases = args.only or ["env", "bw", "llama", "mtp", "mlx"]
+    phases = args.only or ["env", "bw", "llama", "mtp", "contention", "mlx"]
     if "env" not in phases:
         phases = ["env"] + phases
 
@@ -642,6 +916,8 @@ def main():
         guarded("llama", lambda: phase_llama(out, raw, args))
     if "mtp" in phases:
         guarded("mtp", lambda: phase_mtp(out, raw, args))
+    if "contention" in phases:
+        guarded("contention", lambda: phase_contention(out, raw, args))
     if "mlx" in phases:
         guarded("mlx", lambda: phase_mlx(out, raw, args))
 
