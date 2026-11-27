@@ -1,0 +1,50 @@
+Verbatim final reports from the four Haiku runs, 2026-11-26. Instructions were read from each arm's INSTRUCTIONS.md.
+
+== A1 (with examples) ==
+Item | Result | CHECK output | Notes
+---|---|---|---
+scripts/fx.py::titlecase | PASS | 3 passed | UNSPECIFIED: runs of multiple spaces (split(' ') yields empty words); not tested
+scripts/fx.py::chunk | PASS | 3 passed | -
+scripts/fx.py::parse_kv | PASS | 3 passed | UNSPECIFIED: input with no '=' (currently raises ValueError from unpacking); not tested
+scripts/fx.py::median | FAIL | 1 failed, 1 passed | BUG-SUSPECT scripts/fx.py:20 returns s[len(s)//2], so median([1, 2, 3, 4]) gives 3, not 2.5. Docstring says even count gives the mean of the two middle values. Last error: `assert 3 == 2.5`. Test left as written.
+scripts/fx.py::dedupe | PASS | 2 passed | -
+scripts/fx.py::days_in_month | FAIL | 1 failed, 4 passed | BUG-SUSPECT scripts/fx.py:37 returns 29 for 1900 (year % 4 only). Docstring says "accounting for leap years", which I read as the Gregorian rule (centuries not divisible by 400 are not leap). Last error: `assert 29 == 28`. Test left as written; this expectation rests on that reading. UNSPECIFIED: month outside 1-12; not tested.
+
+TOTAL: 4 pass, 2 fail, 0 skipped
+
+Tests are in /home/claude/bt/A1/tests/test_fx.py (new file, 19 tests). No code under test was changed.
+
+== A2 (with examples) ==
+scripts/fx.py::titlecase | PASS | 3 passed, 18 deselected | -
+scripts/fx.py::chunk | PASS | 4 passed, 17 deselected | -
+scripts/fx.py::parse_kv | PASS | 3 passed, 18 deselected | UNSPECIFIED: input without '=' (raises ValueError from unpacking); not tested
+scripts/fx.py::median | FAIL | 2 passed, 1 failed (test_median_even_count_is_mean_of_two_middle_values: `assert 3 == 2.5`) | BUG-SUSPECT scripts/fx.py:20: docstring says even count gives the mean of the two middle values, but the code returns the upper middle value (s[len(s)//2]). Test left as written; code not changed; no fix rounds used.
+scripts/fx.py::dedupe | PASS | 3 passed, 18 deselected | UNSPECIFIED: unhashable items; not tested
+scripts/fx.py::days_in_month | PASS | 5 passed, 16 deselected | UNSPECIFIED: century rule (1900, 2100); docstring does not state the rule, so not tested. Invalid month numbers not tested.
+
+TOTAL: 5 pass, 1 fail, 0 skipped
+
+Tests written to /home/claude/bt/A2/tests/test_fx.py (19 tests).
+
+== B1 (without examples) ==
+scripts/fx.py::titlecase | PASS | 4 passed | -
+scripts/fx.py::chunk | PASS | 4 passed | -
+scripts/fx.py::parse_kv | PASS | 3 passed | -
+scripts/fx.py::median | FAIL | 2 passed, 1 failed (test_median_even_count_is_mean_of_two_middle_values: `assert 3 == 2.5`) | BUG-SUSPECT: scripts/fx.py:20 returns `s[len(s) // 2]`, which gives the upper middle value (3) for an even count. The docstring says the mean of the two middle values (2.5). Code not changed; test not weakened. Fix rounds not used because the test matches the docstring.
+scripts/fx.py::dedupe | PASS | 4 passed | -
+scripts/fx.py::days_in_month | PASS | 4 passed | -
+TOTAL: 5 pass, 1 fail, 0 skipped
+
+Tests written to /home/claude/bt/B1/tests/test_fx.py (19 passing, 1 failing). UNSPECIFIED, not tested: parse_kv on input with no '='; median on an empty list; chunk with n <= 0; days_in_month for century years (1900, 2100) and invalid months; dedupe on unhashable items.
+
+== B2 (without examples) ==
+titlecase | PASS | 4 passed, 0 failed (pytest -k titlecase) | -
+chunk | PASS | 4 passed, 0 failed (pytest -k chunk) | -
+parse_kv | PASS | 3 passed, 0 failed (pytest -k parse_kv) | -
+median | FAIL | 2 passed, 1 failed (pytest -k median); last error: `assert 3 == 2.5` at tests/test_fx.py:65 | BUG-SUSPECT: scripts/fx.py:20 returns `s[len(s) // 2]`, which gives the upper middle value (3 for [1,2,3,4]). The docstring at scripts/fx.py:18 says an even count gives the mean of the two middle values. Code not changed, per rule 8. Test kept as written.
+dedupe | PASS | 4 passed, 0 failed (pytest -k dedupe) | -
+days_in_month | PASS | 4 passed, 0 failed (pytest -k days_in_month) | Century years (e.g. 1900, 2100) left untested: the docstring says only "accounting for leap years", so the rule is UNSPECIFIED.
+
+TOTAL: 5 pass, 1 fail, 0 skipped
+
+Tests are in /home/claude/bt/B2/tests/test_fx.py (22 tests). Untested as UNSPECIFIED: parse_kv with no "=" in the input, and chunk with n <= 0.
