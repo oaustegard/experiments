@@ -13,6 +13,7 @@ Arms whose scores are not probabilities are mapped to rank percentiles, so the
 filter's score floor (0.15) cuts the same bottom share for every arm.
 
 Usage: EVAL_DATA=<private dir> python3 evaluate.py [--split test|val|train|all] [--arms recency,bm25,...]
+         [--scores student17=<EVAL_DATA>/scores/student17_test.jsonl]
 Writes results/agreement_<split>.json (numbers only).
 """
 import argparse
@@ -88,9 +89,12 @@ ARMS = {"recency": recency, "bm25": bm25}
 
 
 def percentiles(scores):
-    order = sorted(scores, key=lambda k: scores[k])
-    n = max(1, len(order) - 1)
-    return {k: i / n for i, k in enumerate(order)}
+    """Rank-map to [0, 1]. Tied scores share one value, so `select`'s stable sort keeps
+    its own tie order (Jev's two-decimal scores tie often)."""
+    vals = sorted(set(scores.values()))
+    n = max(1, len(vals) - 1)
+    rank = {v: i / n for i, v in enumerate(vals)}
+    return {k: rank[v] for k, v in scores.items()}
 
 
 def nonuser(ctx, keep):
@@ -102,7 +106,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--split", default="test")
     ap.add_argument("--arms", default=",".join(ARMS))
+    ap.add_argument("--scores", action="append", default=[],
+                    help="name=path: an arm from precomputed scores (train.py output), jsonl of {key, scores}")
     args = ap.parse_args()
+    files = {}
+    for spec in args.scores:
+        name, path = spec.split("=", 1)
+        files[name] = {}
+        for line in open(path):
+            d = json.loads(line)
+            files[name][d["key"]] = {int(k): v for k, v in d["scores"].items()}
     labels = {}
     for line in open(DATA / "labels.jsonl"):
         r = json.loads(line)
@@ -112,7 +125,10 @@ def main():
     rows = [r for r in rows if f"{r['session']}:{r['deleg_chunk']}" in labels
             and (args.split == "all" or split_of(r["session"]) == args.split)]
     cache = {}
-    res = {a: {b: {"chunk": [], "mass": []} for b in BUDGETS} for a in args.arms.split(",")}
+    arm_names = [a for a in args.arms.split(",") if a] + list(files)
+    res = {a: {b: {"chunk": [], "mass": []} for b in BUDGETS} for a in arm_names}
+    if files:  # a precomputed arm covers only its own split's delegations
+        rows = [r for r in rows if all(f"{r['session']}:{r['deleg_chunk']}" in f for f in files.values())]
     jev_sizes = {b: [] for b in BUDGETS}
     for r in rows:
         if r["session"] not in cache:
@@ -133,7 +149,11 @@ def main():
             jkeep = jevfilter.select(ctx, jev, b)
             jq = wmean(jkeep, J)
             for arm in res:
-                s = percentiles(ARMS[arm](r["task"], ctx))
+                key = f"{r['session']}:{r['deleg_chunk']}"
+                raw = files[arm][key] if arm in files else ARMS[arm](r["task"], ctx)
+                # a learned student outputs probabilities like Jev's; rank-map them anyway so the
+                # 0.15 floor cuts the same share for every arm
+                s = percentiles(raw)
                 akeep = jevfilter.select(ctx, s, b)
                 A = nonuser(ctx, akeep)
                 res[arm][b]["chunk"].append(len(A & J) / len(J))
