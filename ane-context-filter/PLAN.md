@@ -55,7 +55,32 @@ counts are committed.
   Separately, TypeSafe's 100K tokens/s limit stalls 8 concurrent 30K-token windows,
   so `--workers 2` (4 calls in flight) is the setting that ran.
 
-## Status: baselines measured, student not yet trained
+## Status: first student trained, no better than recency at picking Jev's chunks
+
+Round 1 (2026-11-27): `train.py` defaults, Ettin-17m, 2 epochs on 25,349 pairs,
+38 minutes on 4 CPUs. Test split, 45 delegations (`results/agreement_test.json`):
+
+| arm | recall of Jev's chunks at 5K / 10K / 20K | quality at 5K / 10K / 20K |
+|---|---|---|
+| Jev's own scores (the eval's ceiling) | 0.986 / 0.993 / 0.984 | 1.001 / 1.001 / 0.994 |
+| recency | 0.370 / 0.433 / 0.572 | 0.708 / 0.740 / 0.779 |
+| bm25 | 0.245 / 0.300 / 0.422 | 0.754 / 0.760 / 0.782 |
+| student17 | 0.361 / 0.372 / 0.500 | 0.842 / 0.858 / 0.868 |
+
+On the 23 validation delegations the order is the same (student 0.319 at 5K,
+recency 0.367). The student picks chunks Jev rates relevant (quality 0.84 against
+recency's 0.71) but not the ones Jev ranks highest. It was trained pointwise with
+BCE on soft labels, which teaches calibration rather than ordering, and Jev's
+labels are flat: mean 0.367, 25% of chunks at 0.5 or more, 3.7% at 0.8 or more.
+Overlap with Jev's exact picks may also understate a student that picks
+near-equivalent chunks; fact recall would settle that.
+
+Next, in order: a listwise ranking loss per delegation (softmax over a
+delegation's chunks against Jev's scores); recency and the student combined;
+68m; then the fact-recall eval for whichever arm leads. Weights (fp16) and
+scores are on the private `ctxfilter-data` branch.
+
+## Earlier status: baselines
 
 Teacher agreement on the 45 test delegations (20 sessions), non-user chunks
 (`results/agreement_test.json`):
