@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-25T01:51:12.779975+00:00",
+ "last_run": "2026-11-27T01:50:38.946913+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -867,6 +867,17 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "Humanoid (Unitree G1) motion generation that needs a 100k-update training run on a 589-hour custom corpus; quality gains are single-digit centimetres and its per-window latency is about 3x ARDY's. Two lessons transfer: write only accepted state, never speculative candidates, into persistent memory; and most of its 6.1x speedup came from CUDA-graph replay that cut dispatch count (285 ms vs 276 ms with kernel fusion added), which bears on WebGPU dispatch-count work."
+  },
+  "2611.30325": {
+   "title": "Verifiable On-Policy Distillation",
+   "first_seen": "2026-11-27",
+   "best_rank": 17,
+   "upvotes": 198,
+   "reviewed": "2026-11-27",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Scales a full-vocabulary on-policy distillation gradient by the per-group correlation between verifier reward and the teacher's implicit reward; about +1.7 points average over vanilla OPD on AIME-heavy math sets, no seeds or CIs. It needs teacher logits and a reference model, so it does not apply to API-routed models; for the OPSD-into-LoRA idea it only helps where a checkable verifier exists. Code: github.com/juntongshi48/VOPD."
   }
  }
 }
