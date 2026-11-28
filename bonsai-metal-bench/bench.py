@@ -418,8 +418,10 @@ try:
         res[name] = {"load_s": round(load, 2), "ms_median": round(1e3 * statistics.median(ts), 3)}
     try:  # which unit each op is placed on (macOS 14.4+, coremltools 8+)
         from coremltools.models.compute_plan import MLComputePlan
-        compiled = ct.models.MLModel(out_pkg, compute_units=ct.ComputeUnit.CPU_AND_NE)\
-            .get_compiled_model_path()
+        # Fix (first Mac run): keep the MLModel alive, or coremltools deletes the compiled
+        # .mlmodelc as soon as the temporary is garbage-collected.
+        keep = ct.models.MLModel(out_pkg, compute_units=ct.ComputeUnit.CPU_AND_NE)
+        compiled = keep.get_compiled_model_path()
         plan = MLComputePlan.load_from_path(path=compiled, compute_units=ct.ComputeUnit.CPU_AND_NE)
         counts = {}
         for fn in plan.model_structure.program.functions.values():
