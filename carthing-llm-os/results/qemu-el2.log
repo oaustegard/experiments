@@ -1,0 +1,30 @@
+
+carthing-llm-os on qemu-virt: booted at EL2, running at EL1, timer 62500000 Hz
+MMU and caches on (SCTLR_EL1=30d01805)
+PSCI 1.1 via smc
+cores online: 4 of 4
+  [pass] all cores started through PSCI CPU_ON
+self-test:
+  NEON vs scalar dot, 5 lengths 32..4096: worst rel err 3.49e-07
+  [pass] NEON Q4_0 x Q8_0 dot matches scalar reference
+test vectors:
+  blob: 1000 x 1024, 4685232 bytes
+  Q4_0 blocks differing from gguf-py: 0 of 32000
+  [pass] device Q4_0 quantizer is byte-identical to gguf-py
+  Q8_0: scale mismatches 0, values off by one 0 (round-half ties)
+  [pass] device Q8_0 quantizer matches gguf-py within ties
+  matvec scalar, 1 core   worst rel err vs reference 1.38e-05
+  [pass] matvec matches llama.cpp-formula reference
+  matvec NEON, 1 core     worst rel err vs reference 6.51e-05
+  [pass] matvec matches llama.cpp-formula reference
+  matvec NEON, all cores  worst rel err vs reference 6.51e-05
+  [pass] matvec matches llama.cpp-formula reference
+  Q4_0/Q8_0 vs fp32 matvec: relative RMS error 0.0847 (quantization, not a bug)
+  time scalar, 1 core   3.832 ms per matvec, 150.3 MB/s of weights
+  time NEON, 1 core     2.972 ms per matvec, 193.8 MB/s of weights
+  time NEON, all cores  1.097 ms per matvec, 524.9 MB/s of weights
+memory bandwidth:
+  read 1 core : 4.61 GB/s -> decode ceiling ~13.8 tok/s for Qwen3-0.6B Q4_0
+  read 2 cores: 8.57 GB/s -> decode ceiling ~25.6 tok/s for Qwen3-0.6B Q4_0
+  read 4 cores: 12.94 GB/s -> decode ceiling ~38.6 tok/s for Qwen3-0.6B Q4_0
+RESULT: PASS

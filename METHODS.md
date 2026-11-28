@@ -705,6 +705,15 @@ same-size edit within one coarse mtime tick keeps the key unchanged.
 
 ## Environment gotchas (this container)
 
+- **QEMU `virt` with `-m 512M` and an arm64 `Image` on `-kernel` puts its device tree blob (DTB) at `0x48000000`.**
+  A file loaded there with `-device loader` makes QEMU refuse to start ("Some ROM regions are overlapping"). At 512 MB,
+  RAM runs `0x40000000`–`0x60000000`; data at `0x50000000` loads cleanly. Other RAM sizes were not checked.
+  (`carthing-llm-os/Makefile`)
+- **QEMU can rehearse a U-Boot `booti` handover for a bare-metal arm64 kernel.** Give the kernel an arm64 Linux
+  `Image` header and pass the raw binary to `-kernel`: QEMU enters it at EL1 (the OS privilege level) by default, or
+  at EL2 (the hypervisor level, where U-Boot leaves a board) with `-M virt,virtualization=on`. Firmware calls (PSCI,
+  used to start the other cores) then go through `hvc` at EL1 and `smc` at EL2. (`carthing-llm-os/src/boot.S`,
+  `carthing-llm-os/src/smp.c`)
 - **Kokoro (StyleTTS 2 family): only the vocoder side packs to int8.** The parts that set durations (BERT, the
   duration encoder, its LSTM) move word times under int8, and the F0 predictor and the LSTM feeding it move pitch
   (p90 31 and 27 cents against a 14-cent run-to-run floor) without moving a word. The vocoder, the acoustic text
@@ -1912,6 +1921,12 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **To reproduce ggml's quantizers byte for byte in C, turn off FMA contraction.** clang on AArch64 fuses
+  `x*id + 8.5f` (`id` is the inverse block scale) in `quantize_row_q4_0_ref` into one fused multiply-add by
+  default, and gcc does the same in its default GNU mode; the single rounding
+  moved one value across the truncation and changed 1 Q4_0 block in 32,000 against gguf-py. `#pragma clang fp
+  contract(off)` in the quantizer (or `-ffp-contract=off`) makes them identical. Dot products need no such care: a
+  tolerance check is the right test there. (`carthing-llm-os/src/q4.c`)
 - **A smaller ViT encoder can take 4-bit weights far worse than a bigger one from the same family.** With the same
   scheme (encoder linears int4 in groups of 32, everything else int8), Nemotron Parse 2.0 (C-RADIOv2-H, width 1280)
   lost 2.88 Omni Parse Bench points (interval includes zero) and Nemotron 3.5 Parse (C-RADIOv4-SO400M, width 1152)
