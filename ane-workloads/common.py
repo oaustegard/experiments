@@ -12,6 +12,8 @@ from __future__ import annotations
 import json
 import os
 import platform
+import atexit
+import contextlib
 import subprocess
 import sys
 import threading
@@ -84,6 +86,25 @@ def require_mains(env, force):
                  "set Energy Mode to Automatic or High Power, or pass --force.")
 
 
+_LEASE = contextlib.ExitStack()
+atexit.register(_LEASE.close)
+
+
+def _take_gpu_lease(name):
+    """Exclusive GPU lease (_lib/gpulease.py) held until the script exits: the GPU-busy condition
+    is this script's own llama-bench load, and nothing else leased may share the GPU."""
+    try:
+        from _lib.gpulease import lease
+    except ImportError:
+        log("warning: _lib/gpulease.py not found; running without a GPU lease")
+        return None
+    held = _LEASE.enter_context(lease(f"ane-workloads/{name}", exclusive=True, on_wait=lambda st: log(
+        f"waiting for the GPU: holders {[(h['name'], h['mode']) for h in st['holders']]}")))
+    if held.get("unleased_gpu_processes"):
+        log(f"warning: GPU processes without a lease are running: {held['unleased_gpu_processes']}")
+    return held
+
+
 def start(name, args, mac_only=True):
     """Common preamble: environment, power guard, results/<timestamp>-<chip>/<name>/."""
     env = capture_env()
@@ -92,6 +113,7 @@ def start(name, args, mac_only=True):
     log(f"{env['chip'] or env['platform']}, macOS {env['macos']}, AC={env['on_ac_power']}, "
         f"low power={env['low_power_mode']}")
     require_mains(env, args.force)
+    env["gpu_lease"] = _take_gpu_lease(name)
     tag = f"{datetime.now():%Y%m%d-%H%M}-{(env['chip'] or platform.machine()).replace(' ', '-')}"
     out = HERE / "results" / tag / name
     (out / "raw").mkdir(parents=True, exist_ok=True)

@@ -9,6 +9,7 @@ hours to fail.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -260,6 +261,29 @@ def test_pages_manifest_builds():
                 assert target.exists(), rel
                 if target.is_dir():
                     assert (target / "index.html").is_file(), rel
+
+
+def test_gpulease_exclusive_waits_and_drains_shared():
+    """An exclusive lease waits for a shared holder, and a shared request queues behind it."""
+    import subprocess, tempfile, time
+    d = tempfile.mkdtemp()
+    env = dict(os.environ, GPULEASE_DIR=d)
+    root = str(Path(__file__).resolve().parents[2])
+    log = os.path.join(d, "ev")
+    def child(name, ex, hold):
+        code = (f"import sys,time; sys.path.insert(0,{root!r}); from _lib.gpulease import lease\n"
+                f"with lease({name!r}, exclusive={ex}):\n"
+                f"    open({log!r},'a').write('{name}+\\n'); time.sleep({hold})\n"
+                f"open({log!r},'a').write('{name}-\\n')")
+        return subprocess.Popen([sys.executable, "-c", code], env=env)
+    a = child("A", False, 1.5); time.sleep(0.4)
+    b = child("B", True, 1.0); time.sleep(0.6)
+    c = child("C", False, 0.2)
+    for p in (a, b, c):
+        assert p.wait(timeout=30) == 0
+    ev = open(log).read().split()
+    assert ev.index("B+") > ev.index("A-"), ev
+    assert ev.index("C+") > ev.index("B-"), ev
 
 
 if __name__ == "__main__":

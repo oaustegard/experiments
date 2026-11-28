@@ -32,6 +32,7 @@ The MLX phase makes its own venv in work/venv with the pack's pinned requirement
 """
 
 import argparse
+import contextlib
 import json
 import os
 import platform
@@ -861,6 +862,18 @@ def summarize(S):
     return "\n".join(lines)
 
 
+def gpu_lease(name, exclusive=True):
+    """The shared GPU lease (_lib/gpulease.py), so no other leased job runs during the timings."""
+    sys.path.insert(0, str(HERE.parent))
+    try:
+        from _lib.gpulease import lease
+    except ImportError:
+        log("warning: _lib/gpulease.py not found (add _lib to the sparse checkout); running without a GPU lease")
+        return contextlib.nullcontext({"lease": None})
+    return lease(name, exclusive=exclusive, on_wait=lambda st: log(
+        f"waiting for the GPU: holders {[(h['name'], h['mode']) for h in st['holders']]}"))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", choices=["env", "bw", "llama", "mtp", "contention", "mlx"], action="append",
@@ -912,16 +925,20 @@ def main():
         S.setdefault("wall_s", {})[name] = round(time.time() - t)
         (out / "summary.json").write_text(json.dumps(S, indent=1, default=str))
 
-    if "bw" in phases:
-        guarded("bw", lambda: phase_mlx(out, raw, args, bw_only=True))
-    if "llama" in phases:
-        guarded("llama", lambda: phase_llama(out, raw, args))
-    if "mtp" in phases:
-        guarded("mtp", lambda: phase_mtp(out, raw, args))
-    if "contention" in phases:
-        guarded("contention", lambda: phase_contention(out, raw, args))
-    if "mlx" in phases:
-        guarded("mlx", lambda: phase_mlx(out, raw, args))
+    with gpu_lease("bonsai-metal-bench", exclusive=True) as held:
+        S["gpu_lease"] = held
+        if held.get("unleased_gpu_processes"):
+            log(f"warning: GPU processes without a lease are running: {held['unleased_gpu_processes']}")
+        if "bw" in phases:
+            guarded("bw", lambda: phase_mlx(out, raw, args, bw_only=True))
+        if "llama" in phases:
+            guarded("llama", lambda: phase_llama(out, raw, args))
+        if "mtp" in phases:
+            guarded("mtp", lambda: phase_mtp(out, raw, args))
+        if "contention" in phases:
+            guarded("contention", lambda: phase_contention(out, raw, args))
+        if "mlx" in phases:
+            guarded("mlx", lambda: phase_mlx(out, raw, args))
 
     S["env_after"] = {"pmset_therm": sh(["pmset", "-g", "therm"])}
     md = summarize(S)

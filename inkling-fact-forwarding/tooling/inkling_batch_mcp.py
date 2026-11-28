@@ -235,6 +235,29 @@ def _busy_processes() -> list[str]:
 
 # --------------------------------------------------------------------------- engine
 
+def _gpu_lease(wait_s: float):
+    """Take a shared GPU lease (experiments/_lib/gpulease.py) for one engine call. Returns (info, context).
+
+    Waits up to wait_s while an exclusive job (a benchmark) holds or has requested the GPU; then
+    raises BackendError naming it. Without the lease module the call runs unleased."""
+    root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    try:
+        from _lib.gpulease import LeaseTimeout, lease
+    except ImportError:
+        import contextlib
+        return None, contextlib.nullcontext()
+    cm = lease("inkling-batch-mcp", exclusive=False, timeout=wait_s)
+    try:
+        return cm.__enter__(), cm
+    except LeaseTimeout:
+        from _lib.gpulease import status
+        st = status()
+        who = [(h["name"], h["mode"]) for h in st["holders"]] + [(d["name"], "waiting") for d in st["drain_requests"]]
+        raise BackendError(f"the GPU is reserved by an exclusive job {who}; waited {wait_s:g} s. Retry later.")
+
+
 def _esc(s: str) -> str:
     return s.replace("\\", "\\\\").replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t")
 
@@ -296,18 +319,25 @@ def run_engine(prompts: list[str], sp: dict, *, system: str | None = None, lanes
             cmd += ["--effort", sp["thinking"]]
         if shared_n:
             cmd += ["--shared"]
+        held, lease_cm = _gpu_lease(sp["deadline_s"])
+        if held and held.get("waited_s"):
+            warnings.append(f"waited {held['waited_s']:g} s for the GPU lease")
         t0 = time.time()
-        proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, start_new_session=True)
         try:
-            _, stderr = proc.communicate(timeout=sp["deadline_s"])
-        except subprocess.TimeoutExpired:
+            proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
+                                    start_new_session=True)
             try:
-                os.killpg(proc.pid, signal.SIGKILL)
-            except OSError:
-                pass
-            proc.communicate()
-            raise BackendError(f"the batch did not finish within {sp['deadline_s']:g} s and was stopped. Use fewer or "
-                               f"shorter prompts, a smaller max_tokens, or a larger deadline_s.")
+                _, stderr = proc.communicate(timeout=sp["deadline_s"])
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except OSError:
+                    pass
+                proc.communicate()
+                raise BackendError(f"the batch did not finish within {sp['deadline_s']:g} s and was stopped. Use fewer "
+                                   f"or shorter prompts, a smaller max_tokens, or a larger deadline_s.")
+        finally:
+            lease_cm.__exit__(None, None, None)
         wall = time.time() - t0
         rows: list[dict] = []
         summary: dict = {}
