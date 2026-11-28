@@ -42,6 +42,30 @@ Find out whether the tensor path helps PQ2_0 at all.
   the units are in use, and the bottleneck is elsewhere: dequantisation, the Hadamard transform,
   or attention.
 
+What the fork's code says (read 2026-11-28 at `PrismML-Eng/llama.cpp` 43f31f4; the measurement
+decides). With the tensor API on, PQ2_0 prefill runs the general tensor `kernel_mul_mm`
+(`ggml/src/ggml-metal/kernels/mul_mm.metal`, the `GGML_METAL_HAS_TENSOR` branch). Each threadgroup
+computes 64 weight rows by 128 tokens (`NRA = SZ_SIMDGROUP 16 x N_MM_BLOCK_Y 2 x N_MM_SIMD_GROUP_Y 2`,
+`NRB = 16 x 4 x 2`). It walks K in steps of 32 (`N_MM_NK_TOTAL = 16 x N_MM_NK 2`); every step
+dequantises a 64 x 32 weight tile into threadgroup memory, then waits at two barriers. The f32
+activations are read straight from device memory, and every one of the 272 weight-row tiles of
+a 17408-wide projection re-reads them. By that arithmetic, a 2048-token prefill of one
+feed-forward up-projection moves about 11 GB of activations through the cache, against about
+0.36 GB of weights. The suspected limit is activation traffic and barrier stalls, not the matrix
+units. The tile constants live in `ggml/src/ggml-metal/ggml-metal-impl.h` and are shared by host
+and kernels, so this is testable by rebuilding:
+
+- `N_MM_BLOCK_Y 4` (128 weight rows per tile: halves activation re-reads);
+- `N_MM_NK 4` and `N_MM_NK 8` (K steps of 64 and 128: a quarter to half the barriers);
+- both together.
+
+For each rebuild, run `llama-bench -p 2048,8192 -n 0 -r 3` on PQ2_0, plus a short perplexity or
+greedy-output check against the stock build to confirm the output is unchanged. Threadgroup
+memory is `NRA x N_MM_NK_TOTAL x 2` bytes, so 128 x 128 is 32 KB, at the usual limit; if a build
+fails to launch, back off one step. A big gain from any of them means a PQ2_0-specific
+tensor kernel is the work. That kernel would use a larger tile, dequantise one 128-weight block
+per stage with double buffering, and convert activations to half once.
+
 ## Task 3. Why MTP gains only 1.19x at 91% acceptance
 
 With one drafted token accepted 91% of the time, each verify step should yield about 1.9 tokens,
