@@ -187,6 +187,20 @@ at temp 1.0 [measured]:
 | 32 | 530.4 (61.3) | 556.0 (58.5) | 14.8x |
 | 64 | 825.3 (78.8) | 907.6 (71.6) | 24.2x |
 
+**Correction: the "speedup vs 1 lane" column uses the wrong baseline.** The batch engine's own 1-lane path decodes at
+37.8 tok/s, but the engine's dedicated single-stream path (`inkling bench` / `run`, which `inkling-fast` uses) measured on
+a quiet GPU 89.5 / 92.2 / 92.5 tok/s greedy (2,394-token prompt) and 105.2 tok/s sampled at temp 1.0 (short prompt),
+with 3.8–4.2k tok/s prefill [measured, later the same day]. Against 105 tok/s, aggregate decode is about 1.15x at 4 lanes,
+2x at 8, 3.3x at 16, 5x at 32 and 8–9x at 64, and each lane runs at 24 tok/s (8 lanes) down to 13–14 (64 lanes). The
+lane engine only beats the single-stream path from about 4 lanes up. `solo` through `-b 1` is therefore about 2.5x slower than
+`solo` through the single-stream path, a choice the harness has to make explicitly. Equal-engine fairness says `-b 1`; a
+real-world "what is fastest on this Mac" comparison says single-stream.
+
+**GPU contention warning.** A `llama-bench` from `personal/experiments/bonsai-metal-bench` (another session, not
+this one) ran on this GPU twice during these tests. With it running, single-stream decode fell to 10.7–13.3 tok/s and
+the 8-lane row to 44.8 tok/s. The section 8 timings above were taken with no `llama-bench` in the process list at the start
+and were stable over three repeats, but a harness must check `pgrep -fl 'llama-bench|inkling|mlx_lm'` before each run.
+
 So the plan's "up to 64 lanes, more than 500 tok/s aggregate" holds for decode on short contexts (825–908 tok/s at 64). The
 5K-shard rows above show no decode penalty for context at 4 and 8 lanes (120 and 192 tok/s, against 119 and 194 on
 23-token prompts); 64 lanes at 5K context was not run. Prefill stays about 3.2–4k tok/s at any lane count, so a run
