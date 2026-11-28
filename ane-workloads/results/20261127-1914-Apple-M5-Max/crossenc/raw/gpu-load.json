@@ -1,0 +1,47 @@
+{
+ "cmd": [
+  "~/Documents/projects/personal/experiments/bonsai-metal-bench/work/llama.cpp/build/bin/llama-bench",
+  "-m",
+  "~/Documents/projects/personal/experiments/bonsai-metal-bench/work/gguf/Ternary-Bonsai-2.5-27B-PQ2_0.gguf",
+  "-ngl",
+  "99",
+  "-fa",
+  "1",
+  "-o",
+  "json",
+  "-p",
+  "0",
+  "-n",
+  "512",
+  "-r",
+  "6"
+ ],
+ "runs": [
+  {
+   "t0": 1795825044.315209,
+   "t1": 1795825113.253073,
+   "rc": 0,
+   "tg_ts": 44.966522
+  },
+  {
+   "t0": 1795825113.253171,
+   "t1": 1795825187.3247738,
+   "rc": 0,
+   "tg_ts": 41.836136
+  },
+  {
+   "t0": 1795825187.324815,
+   "t1": 1795825263.294698,
+   "rc": 0,
+   "tg_ts": 40.985651
+  },
+  {
+   "t0": 1795825263.294741,
+   "t1": 1795825314.1517801,
+   "rc": -15,
+   "tg_ts": null,
+   "killed": true
+  }
+ ],
+ "errors": []
+}
