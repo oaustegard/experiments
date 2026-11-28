@@ -219,6 +219,165 @@ def task_kernels(args):
     print(md)
 
 
+# Task 2, rebuild extension: the tensor `kernel_mul_mm` tile constants (ggml-metal-impl.h). A threadgroup
+# computes (16 x N_MM_BLOCK_Y x 2) weight rows by 128 tokens and walks K in steps of 16 x N_MM_NK.
+TILE_VARIANTS = {"stock": {}, "by4": {"N_MM_BLOCK_Y": 4}, "nk4": {"N_MM_NK": 4}, "nk8": {"N_MM_NK": 8},
+                 "by4nk4": {"N_MM_BLOCK_Y": 4, "N_MM_NK": 4}, "by4nk8": {"N_MM_BLOCK_Y": 4, "N_MM_NK": 8}}
+
+
+def build_tile_variant(name, defs, commit):
+    src = WORK / "llama.cpp"
+    if name == "stock":
+        tree = src
+    else:
+        tree = WORK / f"llama.cpp-tile-{name}"
+        if not tree.exists():
+            rc, _, err = run(["git", "-C", str(src), "worktree", "add", "--detach", str(tree), commit], timeout=300)
+            if rc != 0:
+                raise RuntimeError("worktree failed: " + err[-800:])
+        hdr = tree / "ggml" / "src" / "ggml-metal" / "ggml-metal-impl.h"
+        text = hdr.read_text()
+        for k, v in defs.items():
+            text, n = re.subn(rf"(#define {k}) \d+", rf"\1 {v}", text)
+            assert n == 1, f"{k} not found once in {hdr}"
+        hdr.write_text(text)
+    if not (tree / "build").exists():
+        rc, _, err = run(["cmake", "-B", "build", "-DCMAKE_BUILD_TYPE=Release", "-DLLAMA_CURL=OFF",
+                          "-DGGML_METAL=ON"], cwd=str(tree), timeout=900)
+        if rc != 0:
+            raise RuntimeError("cmake failed: " + err[-1500:])
+    rc, _, err = run(["cmake", "--build", "build", "-j", "--config", "Release", "--target", "llama-bench",
+                      "llama-perplexity"], cwd=str(tree), timeout=3600)
+    if rc != 0:
+        raise RuntimeError("build failed: " + err[-1500:])
+    return tree / "build" / "bin"
+
+
+def perplexity(bindir, model, text, name, raw):
+    cmd = [str(bindir / "llama-perplexity"), "-m", str(model), "-f", str(text), "-c", "2048", "--chunks", "6",
+           "-ngl", "99", "-fa", "on"]
+    log(f"{name}: perplexity")
+    rc, o, err = run(cmd, timeout=3600)
+    (raw / f"{name}-ppl.log").write_text(f"rc={rc}\n{o}\n--- stderr\n{err}")
+    m = re.search(r"Final estimate: PPL = ([\d.]+)", o + err)
+    chunks = re.findall(r"\[(\d+)\]([\d.]+)", o + err)
+    return {"rc": rc, "ppl": float(m.group(1)) if m else None,
+            "chunk_ppl": [float(v) for _, v in chunks][:6]}
+
+
+def task_tiles(args):
+    env, out = start("tiles", args)
+    raw = out / "raw"
+    S = {"env": env, "args": vars(args), "variants": TILE_VARIANTS, "params_per_token": PARAMS}
+    _, commit = bench.build_fork()
+    S["fork_commit"] = commit
+    model = bench.hf_download(bench.GGUF_REPO, bench.GGUFS["PQ2_0"], WORK / "gguf")
+    text = WORK / "ppl.txt"
+    text.write_text((HERE.parent / "METHODS.md").read_text()[:90000])
+    S["runs"] = {}
+    order = ["stock"] + [v for v in TILE_VARIANTS if v != "stock"] + ["stock-again"]
+    bins = {}
+    for name in order:
+        key = "stock" if name == "stock-again" else name
+        r = {"defs": TILE_VARIANTS[key]}
+        try:
+            if key not in bins:
+                bins[key] = build_tile_variant(key, TILE_VARIANTS[key], commit)
+            r["prefill"] = bench_run(bins[key], model, ["-p", "2048,8192", "-n", "0", "-r", str(args.reps)],
+                                     f"{name}-prefill", raw)
+            if name != "stock-again":
+                r["perplexity"] = perplexity(bins[key], model, text, name, raw)
+        except Exception as ex:  # a variant that fails to build or launch is a result, and the rest carry on
+            r["error"] = repr(ex)
+            log(f"{name} failed: {ex!r}")
+        S["runs"][name] = r
+        (out / "summary.json").write_text(json.dumps(S, indent=1, default=str))
+    md = summarize_tiles(S)
+    (out / "summary.md").write_text(md + "\n")
+    print("\n" + md)
+    log(f"wrote {out}")
+
+
+def task_tiles_ab(args):
+    """The tile run found 15% drift between its first and last stock runs, so nk4 and nk8 could not be
+    told from stock. Interleave stock with each, twice, a long cooldown between runs."""
+    env, out = start("tiles-ab", args)
+    raw = out / "raw"
+    S = {"env": env, "args": vars(args), "params_per_token": PARAMS}
+    _, commit = bench.build_fork()
+    S["fork_commit"] = commit
+    model = bench.hf_download(bench.GGUF_REPO, bench.GGUFS["PQ2_0"], WORK / "gguf")
+    names = args.variants.split(",")
+    bins = {n: build_tile_variant(n, TILE_VARIANTS[n], commit) for n in ["stock"] + names}
+    order = ["stock"]
+    for _ in range(args.pairs):
+        for n in names:
+            order += [n, "stock"]
+    S["order"], S["runs"] = order, []
+    for i, n in enumerate(order):
+        r = bench_run(bins[n], model, ["-p", "2048,8192", "-n", "0", "-r", str(args.reps)],
+                      f"{i:02d}-{n}-prefill", raw, cooldown=args.ab_cooldown)
+        S["runs"].append({"i": i, "variant": n, **r})
+        (out / "summary.json").write_text(json.dumps(S, indent=1, default=str))
+    L = ["# Task 2 (rebuild extension), interleaved: stock against each variant", "",
+         f"Fork {commit[:10]}, PQ2_0, tensor API on, `-p 2048,8192 -r {args.reps}`, {args.ab_cooldown} s cooldown "
+         "between runs. Each variant is compared with the mean of the stock runs on either side of it.", "",
+         "| run | variant | pp2048 tok/s | pp8192 tok/s |", "|---|---|---|---|"]
+    def val(run, n):
+        try:
+            return {x["n_prompt"]: x["avg_ts"] for x in run["rows"]}[n]
+        except (KeyError, TypeError):
+            return None
+    for r in S["runs"]:
+        L.append(f"| {r['i']} | {r['variant']} | {val(r, 2048) or 'failed'} | {val(r, 8192) or 'failed'} |")
+    L += ["", "| variant | pp2048 vs adjacent stock | pp8192 vs adjacent stock |", "|---|---|---|"]
+    runs = S["runs"]
+    for n in names:
+        d2, d8 = [], []
+        for k, r in enumerate(runs):
+            if r["variant"] != n:
+                continue
+            for size, acc in ((2048, d2), (8192, d8)):
+                a, b, c = val(runs[k - 1], size), val(r, size), val(runs[k + 1], size)
+                if a and b and c:
+                    acc.append(100 * (b / ((a + c) / 2) - 1))
+        f = lambda xs: ", ".join(f"{x:+.1f}%" for x in xs)  # noqa: E731
+        L.append(f"| {n} | {f(d2)} | {f(d8)} |")
+    md = "\n".join(L)
+    (out / "summary.md").write_text(md + "\n")
+    print("\n" + md)
+    log(f"wrote {out}")
+
+
+def summarize_tiles(S):
+    def pp(r, n):
+        try:
+            return {x["n_prompt"]: x["avg_ts"] for x in r["prefill"]["rows"]}[n]
+        except (KeyError, TypeError):
+            return None
+    base = {n: statistics.mean(v for v in (pp(S["runs"].get("stock"), n), pp(S["runs"].get("stock-again"), n)) if v)
+            for n in (2048, 8192)}
+    L = ["# Task 2 (rebuild extension): tensor `kernel_mul_mm` tile constants", "",
+         f"Fork {S['fork_commit'][:10]}, PQ2_0, tensor API on. Baseline = mean of the first and last stock runs: "
+         f"pp2048 {base[2048]:.1f}, pp8192 {base[8192]:.1f} tok/s. TFLOPS = 2 x {PARAMS / 1e9:.2f}e9 x tok/s. "
+         "Perplexity: `llama-perplexity -c 2048 --chunks 6` on the first 90 kB of METHODS.md.", "",
+         "| variant | constants | pp2048 tok/s (TFLOPS) | vs stock | pp8192 tok/s (TFLOPS) | vs stock | perplexity |",
+         "|---|---|---|---|---|---|---|"]
+    for name, r in S["runs"].items():
+        d = ", ".join(f"{k}={v}" for k, v in r["defs"].items()) or "stock"
+        if "error" in r:
+            L.append(f"| {name} | {d} | {r['error'][:120]} | | | | |")
+            continue
+        a, b = pp(r, 2048), pp(r, 8192)
+        ppl = (r.get("perplexity") or {}).get("ppl")
+        if a is None:
+            L.append(f"| {name} | {d} | failed: {str((r['prefill'] or {}).get('error'))[:100]} | | | | {ppl} |")
+            continue
+        L.append(f"| {name} | {d} | {a:.1f} ({tflops(a):.1f}) | {100 * (a / base[2048] - 1):+.1f}% | "
+                 f"{b:.1f} ({tflops(b):.1f}) | {100 * (b / base[8192] - 1):+.1f}% | {ppl} |")
+    return "\n".join(L)
+
+
 # ---------------------------------------------------------------- Task 3: MTP verify cost
 
 def serve_setting(bindir, model, port, spec_args, envx, name, raw, rounds):
@@ -413,7 +572,7 @@ def summarize_kv(S):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("task", choices=["tensor", "kernels", "mtp", "kv"])
+    ap.add_argument("task", choices=["tensor", "kernels", "tiles", "tiles-ab", "mtp", "kv"])
     ap.add_argument("--into", type=Path, help="kernels: the round2-tensor results directory to add to")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--rounds", type=int, default=2, help="mtp: rounds over the prompt set per setting")
@@ -421,9 +580,12 @@ def main():
     ap.add_argument("--upstream-tag", default="b12823")
     ap.add_argument("--port", type=int, default=18931)
     ap.add_argument("--cooldown", type=int, default=20)
+    ap.add_argument("--variants", default="nk4,nk8", help="tiles-ab: variants to interleave with stock")
+    ap.add_argument("--pairs", type=int, default=2, help="tiles-ab: repeats of each variant")
+    ap.add_argument("--ab-cooldown", type=int, default=45, help="tiles-ab: seconds between runs")
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args()
-    {"tensor": task_tensor, "kernels": task_kernels, "mtp": task_mtp, "kv": task_kv}[args.task](args)
+    {"tensor": task_tensor, "kernels": task_kernels, "tiles": task_tiles, "tiles-ab": task_tiles_ab, "mtp": task_mtp, "kv": task_kv}[args.task](args)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,397 @@
+{
+ "env": {
+  "timestamp": "2026-11-27T23:01:22",
+  "chip": "Apple M5 Max",
+  "model": "Mac17,6",
+  "memsize_bytes": "137438953472",
+  "macos": "27.2.1",
+  "iogpu_wired_limit_mb": "0",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t52%; charging; 2:24 remaining present: true",
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "python": "3.15.0",
+  "low_power_mode": false,
+  "powermode": "0",
+  "gpu_cores": "40",
+  "on_ac_power": true
+ },
+ "args": {
+  "task": "tiles-ab",
+  "into": null,
+  "reps": 3,
+  "rounds": 2,
+  "depths": "0,8192,32768,65536",
+  "upstream_tag": "b12823",
+  "port": 18931,
+  "cooldown": 20,
+  "variants": "nk4,nk8",
+  "pairs": 2,
+  "ab_cooldown": 45,
+  "force": false
+ },
+ "params_per_token": 24350000000.0,
+ "fork_commit": "43f31f400c66dd44ce52a044119db77c271fed06",
+ "order": [
+  "stock",
+  "nk4",
+  "stock",
+  "nk8",
+  "stock",
+  "nk4",
+  "stock",
+  "nk8",
+  "stock"
+ ],
+ "runs": [
+  {
+   "i": 0,
+   "variant": "stock",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 753.005935,
+     "stddev_ts": 9.511277,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 609.605744,
+     "stddev_ts": 24.366041,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 0.001 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  },
+  {
+   "i": 1,
+   "variant": "nk4",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 662.860126,
+     "stddev_ts": 8.172271,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 640.14447,
+     "stddev_ts": 6.999696,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 0.001 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  },
+  {
+   "i": 2,
+   "variant": "stock",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 703.472687,
+     "stddev_ts": 29.082138,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 658.809264,
+     "stddev_ts": 16.781833,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 0.000 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  },
+  {
+   "i": 3,
+   "variant": "nk8",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 724.414516,
+     "stddev_ts": 48.764814,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 678.746341,
+     "stddev_ts": 13.33808,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 0.593 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  },
+  {
+   "i": 4,
+   "variant": "stock",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 650.670804,
+     "stddev_ts": 39.39745,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 625.84749,
+     "stddev_ts": 11.197755,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 0.012 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  },
+  {
+   "i": 5,
+   "variant": "nk4",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 652.419056,
+     "stddev_ts": 26.54298,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 614.406505,
+     "stddev_ts": 11.787534,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 1.901 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  },
+  {
+   "i": 6,
+   "variant": "stock",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 530.359889,
+     "stddev_ts": 12.959879,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 576.540497,
+     "stddev_ts": 36.095982,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 0.001 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  },
+  {
+   "i": 7,
+   "variant": "nk8",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 548.283042,
+     "stddev_ts": 6.132828,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 582.047087,
+     "stddev_ts": 10.58237,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 0.002 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  },
+  {
+   "i": 8,
+   "variant": "stock",
+   "rows": [
+    {
+     "n_prompt": 2048,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 628.984141,
+     "stddev_ts": 38.148017,
+     "build_commit": "43f31f4"
+    },
+    {
+     "n_prompt": 8192,
+     "n_gen": 0,
+     "n_depth": 0,
+     "n_batch": 2048,
+     "n_ubatch": 512,
+     "type_k": "f16",
+     "type_v": "f16",
+     "avg_ts": 599.018228,
+     "stddev_ts": 8.435134,
+     "build_commit": "43f31f4"
+    }
+   ],
+   "stderr_notes": {
+    "mul_mm_kernels": [],
+    "tensor_lines": [
+     "ggml_metal_device_init: testing tensor API for f16 support",
+     "ggml_metal_device_init: testing tensor API for bfloat support",
+     "ggml_metal_library_compile_all: compiled 'fa_tensor' library in 0.013 sec",
+     "ggml_metal_device_init: has tensor            = true"
+    ]
+   }
+  }
+ ]
+}
