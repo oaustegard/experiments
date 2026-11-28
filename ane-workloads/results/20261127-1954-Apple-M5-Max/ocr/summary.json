@@ -1,0 +1,474 @@
+{
+ "env": {
+  "timestamp": "2026-11-27T19:54:23",
+  "platform": "Darwin arm64",
+  "chip": "Apple M5 Max",
+  "model": "Mac17,6",
+  "memsize_bytes": "137438953472",
+  "perf_cores": "6",
+  "macos": "27.2.1",
+  "macos_build": "26B131",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t74%; charging; 1:44 remaining present: true",
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "python": "3.12.16",
+  "low_power_mode": false,
+  "on_ac_power": true,
+  "powermode": "0"
+ },
+ "args": {
+  "only": "None",
+  "pages": "None",
+  "sample": "250",
+  "device": "auto",
+  "busy_pages": "150",
+  "grade": "True",
+  "systems": "Indra OCR,Tesseract",
+  "readapt": "None",
+  "force": "False",
+  "no_gpu_busy": "False",
+  "llama_bench": "None",
+  "gpu_model": "None",
+  "gpu_n": "512",
+  "gpu_reps": "6",
+  "gpu_settle": "20"
+ },
+ "dataset": {
+  "repo": "datalab-to/omni_parse_bench",
+  "revision": "c7afc687911ff903eb36ca2daa450008629679f1"
+ },
+ "arms": {
+  "text": {
+   "setup": {
+    "request": "VNRecognizeTextRequest",
+    "level": "accurate",
+    "revision": 3,
+    "language_correction": true,
+    "automatically_detects_language": true,
+    "asked_device": "auto",
+    "supported_devices": {
+     "VNComputeStageMain": [
+      "MLNeuralEngineComputeDevice",
+      "MLGPUComputeDevice",
+      "MLCPUComputeDevice"
+     ]
+    },
+    "assigned_devices": {
+     "VNComputeStageMain": "auto"
+    }
+   },
+   "first_request_ms": 478.56,
+   "idle": {
+    "pages": 250,
+    "ms_median": 184.9,
+    "ms_mean": 202.7,
+    "ms_p90": 308.7,
+    "pages_per_s": 4.93,
+    "errors": 0,
+    "wall_s": 51.1
+   },
+   "busy": {
+    "pages": 150,
+    "ms_median": 245.9,
+    "ms_mean": 263.2,
+    "ms_p90": 379.8,
+    "pages_per_s": 3.8,
+    "errors": 0,
+    "wall_s": 39.8,
+    "idle_same_pages": {
+     "pages": 150,
+     "ms_median": 179.1,
+     "ms_mean": 193.1,
+     "ms_p90": 283.1,
+     "pages_per_s": 5.18
+    },
+    "same_output_as_idle": 150,
+    "gpu_busy_fraction": 1.0,
+    "gpu_alone_tok_s": 45.05,
+    "gpu_during_tok_s": null
+   }
+  },
+  "docs": {
+   "setup": {
+    "request": "RecognizeDocumentsRequest.revision1",
+    "swiftc": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.2.0",
+    "supported_devices": {
+     "main": [
+      "ne",
+      "gpu",
+      "cpu"
+     ]
+    },
+    "asked_device": "auto",
+    "assigned_devices": {
+     "main": "auto"
+    },
+    "os": "Version 27.2.1 (Build 26B131)"
+   },
+   "first_request_ms": 333.691667,
+   "idle": {
+    "pages": 250,
+    "ms_median": 308.7,
+    "ms_mean": 331.5,
+    "ms_p90": 480.0,
+    "pages_per_s": 3.02,
+    "errors": 0,
+    "wall_s": 83.5
+   },
+   "busy": {
+    "pages": 150,
+    "ms_median": 337.2,
+    "ms_mean": 393.0,
+    "ms_p90": 590.3,
+    "pages_per_s": 2.54,
+    "errors": 0,
+    "wall_s": 73.2,
+    "idle_same_pages": {
+     "pages": 150,
+     "ms_median": 284.7,
+     "ms_mean": 318.9,
+     "ms_p90": 466.7,
+     "pages_per_s": 3.14
+    },
+    "same_output_as_idle": 150,
+    "gpu_busy_fraction": 0.727,
+    "gpu_alone_tok_s": 45.05,
+    "gpu_during_tok_s": 42.92
+   }
+  }
+ },
+ "pages": {
+  "selected": 250,
+  "rasterise_errors": {}
+ },
+ "grade": {
+  "pages": 250,
+  "summaries": {
+   "text": {
+    "score": 0.2608924001555792,
+    "families": {
+     "text": {
+      "score": 0.2547584187408492,
+      "tests": 683
+     },
+     "tables": {
+      "score": 0.0,
+      "tests": 557
+     },
+     "layout": {
+      "score": 0.5279187817258884,
+      "tests": 197
+     }
+    },
+    "per_suite": {
+     "docparsing_images": 0.5,
+     "forms_documentcloud": 1.0,
+     "forms_federal": 0.5,
+     "forms_filled": 0.9286,
+     "frbench_handwriting": 0.0769,
+     "handwriting_samples": 0.2381,
+     "large_format": 0.5,
+     "multiling_finepdfs": 0.2222,
+     "multilingual": 0.7143,
+     "olmo_arxiv_math": 0.1254,
+     "olmo_long_tiny_text": 0.8125,
+     "olmo_multi_column": 0.6296,
+     "olmo_old_scans": 0.0294,
+     "olmo_old_scans_math": 0.0,
+     "olmo_table_tests": 0.0612,
+     "parsebench_docs": 0.5789,
+     "realdoc_pages": 0.5312,
+     "realdoc_pdfs": 0.4737,
+     "rotation_skew": 0.6087,
+     "synth_copies": 0.4717,
+     "tables_derived": 0.0415,
+     "tiny_plans": 0.3462
+    },
+    "failed_pages": 0,
+    "ms_median": 185.56,
+    "ms_mean": 202.7
+   },
+   "docs": {
+    "score": 0.4084484620149038,
+    "families": {
+     "text": {
+      "score": 0.2225475841874085,
+      "tests": 683
+     },
+     "tables": {
+      "score": 0.19569120287253142,
+      "tests": 557
+     },
+     "layout": {
+      "score": 0.8071065989847716,
+      "tests": 197
+     }
+    },
+    "per_suite": {
+     "docparsing_images": 0.5,
+     "forms_documentcloud": 1.0,
+     "forms_federal": 0.4615,
+     "forms_filled": 0.7857,
+     "frbench_handwriting": 0.2308,
+     "handwriting_samples": 0.2857,
+     "large_format": 0.0,
+     "multiling_finepdfs": 0.2222,
+     "multilingual": 0.7143,
+     "olmo_arxiv_math": 0.1224,
+     "olmo_long_tiny_text": 0.5625,
+     "olmo_multi_column": 0.5185,
+     "olmo_old_scans": 0.0294,
+     "olmo_old_scans_math": 0.0,
+     "olmo_table_tests": 0.3265,
+     "parsebench_docs": 0.7368,
+     "realdoc_pages": 0.5625,
+     "realdoc_pdfs": 0.2632,
+     "rotation_skew": 0.5217,
+     "synth_copies": 0.5189,
+     "tables_derived": 0.2699,
+     "tiny_plans": 0.3462
+    },
+    "failed_pages": 0,
+    "ms_median": 309.508791,
+    "ms_mean": 331.5
+   },
+   "Indra OCR": {
+    "score": 0.7953612867471657,
+    "families": {
+     "text": {
+      "score": 0.6427525622254758,
+      "tests": 683
+     },
+     "tables": {
+      "score": 0.7737881508078994,
+      "tests": 557
+     },
+     "layout": {
+      "score": 0.9695431472081218,
+      "tests": 197
+     }
+    },
+    "per_suite": {
+     "docparsing_images": 0.7778,
+     "forms_documentcloud": 1.0,
+     "forms_federal": 0.6538,
+     "forms_filled": 1.0,
+     "frbench_handwriting": 0.0,
+     "handwriting_samples": 0.1905,
+     "large_format": 0.5,
+     "multiling_finepdfs": 0.8333,
+     "multilingual": 0.4286,
+     "olmo_arxiv_math": 0.7143,
+     "olmo_long_tiny_text": 0.875,
+     "olmo_multi_column": 0.8519,
+     "olmo_old_scans": 0.0882,
+     "olmo_old_scans_math": 0.375,
+     "olmo_table_tests": 0.8163,
+     "parsebench_docs": 0.9211,
+     "realdoc_pages": 0.6875,
+     "realdoc_pdfs": 0.5789,
+     "rotation_skew": 0.6087,
+     "synth_copies": 0.6887,
+     "tables_derived": 0.8131,
+     "tiny_plans": 0.9231
+    }
+   },
+   "Tesseract": {
+    "score": 0.05514885309907272,
+    "families": {
+     "text": {
+      "score": 0.16544655929721816,
+      "tests": 683
+     },
+     "tables": {
+      "score": 0.0,
+      "tests": 557
+     },
+     "layout": {
+      "score": 0.0,
+      "tests": 197
+     }
+    },
+    "per_suite": {
+     "docparsing_images": 0.0,
+     "forms_documentcloud": 1.0,
+     "forms_federal": 0.1538,
+     "forms_filled": 0.7143,
+     "frbench_handwriting": 0.0,
+     "handwriting_samples": 0.0,
+     "large_format": 1.0,
+     "multiling_finepdfs": 0.3611,
+     "multilingual": 0.5714,
+     "olmo_arxiv_math": 0.0146,
+     "olmo_long_tiny_text": 0.4375,
+     "olmo_multi_column": 0.3704,
+     "olmo_old_scans": 0.0,
+     "olmo_old_scans_math": 0.0,
+     "olmo_table_tests": 0.0,
+     "parsebench_docs": 0.1316,
+     "realdoc_pages": 0.0312,
+     "realdoc_pdfs": 0.3684,
+     "rotation_skew": 0.0435,
+     "synth_copies": 0.1604,
+     "tables_derived": 0.0138,
+     "tiny_plans": 0.6923
+    }
+   }
+  },
+  "paired": {
+   "text vs docs": {
+    "a": 0.2608924001555792,
+    "b": 0.4084484620149038,
+    "gap": -0.14755606185932463,
+    "low": -0.1929848856394826,
+    "high": -0.0986409876795483,
+    "excludes_zero": true,
+    "families": {
+     "text": {
+      "gap": 0.032210834553440704,
+      "low": 0.009645529309918393,
+      "high": 0.056719398399706564
+     },
+     "tables": {
+      "gap": -0.19569120287253142,
+      "low": -0.27482347268881424,
+      "high": -0.1149544807534034
+     },
+     "layout": {
+      "gap": -0.2791878172588832,
+      "low": -0.3868972278304084,
+      "high": -0.16577114343131577
+     }
+    }
+   },
+   "text vs Indra OCR": {
+    "a": 0.2608924001555792,
+    "b": 0.7953612867471657,
+    "gap": -0.5344688865915865,
+    "low": -0.5831760887707245,
+    "high": -0.48350847411548725,
+    "excludes_zero": true,
+    "families": {
+     "text": {
+      "gap": -0.38799414348462663,
+      "low": -0.455222701011228,
+      "high": -0.31311574268562065
+     },
+     "tables": {
+      "gap": -0.7737881508078994,
+      "low": -0.8592916007709795,
+      "high": -0.6778943085162239
+     },
+     "layout": {
+      "gap": -0.4416243654822335,
+      "low": -0.5586633256654617,
+      "high": -0.3285642135642136
+     }
+    }
+   },
+   "text vs Tesseract": {
+    "a": 0.2608924001555792,
+    "b": 0.05514885309907272,
+    "gap": 0.20574354705650647,
+    "low": 0.1662813655075196,
+    "high": 0.243724436426658,
+    "excludes_zero": true,
+    "families": {
+     "text": {
+      "gap": 0.08931185944363104,
+      "low": 0.03612150292778145,
+      "high": 0.15054278830116316
+     },
+     "tables": {
+      "gap": 0.0,
+      "low": 0.0,
+      "high": 0.0
+     },
+     "layout": {
+      "gap": 0.5279187817258884,
+      "low": 0.41480713874496256,
+      "high": 0.636960403726708
+     }
+    }
+   },
+   "docs vs Indra OCR": {
+    "a": 0.4084484620149038,
+    "b": 0.7953612867471657,
+    "gap": -0.38691282473226185,
+    "low": -0.4321010577505301,
+    "high": -0.3405072928224471,
+    "excludes_zero": true,
+    "families": {
+     "text": {
+      "gap": -0.42020497803806733,
+      "low": -0.4886470018003046,
+      "high": -0.34857413930235204
+     },
+     "tables": {
+      "gap": -0.578096947935368,
+      "low": -0.6775161791131831,
+      "high": -0.4777004214357551
+     },
+     "layout": {
+      "gap": -0.1624365482233503,
+      "low": -0.24837637494022,
+      "high": -0.08826953227070818
+     }
+    }
+   },
+   "docs vs Tesseract": {
+    "a": 0.4084484620149038,
+    "b": 0.05514885309907272,
+    "gap": 0.3532996089158311,
+    "low": 0.3078051346288442,
+    "high": 0.39649613893618524,
+    "excludes_zero": true,
+    "families": {
+     "text": {
+      "gap": 0.05710102489019034,
+      "low": 0.0015357653791130267,
+      "high": 0.11892849447792211
+     },
+     "tables": {
+      "gap": 0.19569120287253142,
+      "low": 0.1149544807534034,
+      "high": 0.27482347268881424
+     },
+     "layout": {
+      "gap": 0.8071065989847716,
+      "low": 0.7163855045298345,
+      "high": 0.8839409099066762
+     }
+    }
+   },
+   "Indra OCR vs Tesseract": {
+    "a": 0.7953612867471657,
+    "b": 0.05514885309907272,
+    "gap": 0.740212433648093,
+    "low": 0.7004844587151586,
+    "high": 0.7767638896470317,
+    "excludes_zero": true,
+    "families": {
+     "text": {
+      "gap": 0.47730600292825764,
+      "low": 0.4095186593772284,
+      "high": 0.5370089606655027
+     },
+     "tables": {
+      "gap": 0.7737881508078994,
+      "low": 0.6778943085162239,
+      "high": 0.8592916007709795
+     },
+     "layout": {
+      "gap": 0.9695431472081218,
+      "low": 0.9342822384428223,
+      "high": 0.993904275639142
+     }
+    }
+   }
+  }
+ },
+ "env_after": {
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t72%; charging; (no estimate) present: true"
+ }
+}
