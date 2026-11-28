@@ -20,7 +20,7 @@ From `inkling-fact-forwarding/ENGINE.md` (measured on this Mac) and upstream eri
   multi-stream LoRA web UI.
 - **Decode scales with lanes; prefill does not.** Aggregate decode 37.6 / 119 / 194 / 328 / 530 /
   825 tok/s at 1 / 4 / 8 / 16 / 32 / 64 lanes (short prompts); prefill 3.5-4k tok/s at any lane count.
-  A 20K-token request costs about 5 s of prefill, so a service is prefill-bound first: about 720
+  A 20K-token request costs about 5 s of prefill, so for unseen text a service is prefill-bound first: about 720
   such requests an hour at most.
 - **One lane is slower than the single-stream path.** The lane engine's 1-lane path decodes at about
   38 tok/s; the dedicated single-stream path at 90-105. Lanes win from about 4 concurrent requests.
@@ -66,6 +66,29 @@ prefill only the new tokens. Evict least-recently-used entries when memory runs 
 16 x 8K shared-head case, the same idea cut end-to-end time about 100x
 (`robotgamedevelopers/inky/docs/PERFORMANCE.md` §4B).
 
+### Precompiled file KV (.ikv cartridges): prefill moved off the request path
+
+Prefill caps the service only for text it has not seen. Inkling has no RoPE, and its relative position
+bias is zero beyond 1,024 tokens, so a file's KV in the 8 global layers can be computed once, offline,
+and dropped into a request's cache at any offset. The other 40 layers are 1,024-token sliding windows and
+need only the file's tail. Upstream erisinky ships this as `.ikv` cartridges (eriskii.net/research/inkling-ikv,
+2026-11-27, the author's own figures on an M5 Pro):
+
+- 3 files (46.4K tokens) loaded in 0.57 s of stitching plus 1.19 s to the first token, against 94.6 s of
+  raw prefill. Compiling 47 files (243K tokens) took 194 s, which can run while the GPU is idle.
+- The pasted KV is approximate: mean KL 0.008 to 0.03 against a real prefill, with 95/96 exact
+  next-token matches in the author's agent paste test.
+- Task quality drops: on a 25-task eval, .ikv scored 17/25 against 21/25 for FP16 when answering
+  directly, and 16/25 against 25/25 with chain of thought. Document search scored 89 against 93-94.
+  Near-identical files blur together (2/10 on synthetic logs). Using K3V2 both on disk and in the live
+  pool doubles the quantisation error (KL 0.197).
+
+For a service this changes the ceiling. Much of a Claude session's context is the same repository files,
+docs and memory dumps over and over; their prefill can be done once, ahead of time, and shared across
+sessions in any order. The prefix cache only helps when a request repeats an earlier prefix exactly. The
+quality cost is real, though, and the author's evals are small, so the service needs its own measurement
+before it serves cartridges by default.
+
 ### The coordinator (a model, at the policy level)
 
 Lane scheduling happens every 30-80 ms per decode step and stays in code. A model fits the decisions
@@ -81,6 +104,11 @@ made every few seconds or minutes, where the inputs are messy:
   Jev "start the queued exclusive job now?".
 - **Batch planning:** decide which queued offline work (fact-forwarding arms, embedding jobs, benchmark rounds) to
   run overnight, and in what order.
+- **Using idle time:** decide which files to compile into cartridges while the GPU is idle: the files the
+  sessions keep reading, recently changed files, or the repositories Oskar is working in. Doing this well
+  means predicting what the next requests will need. That makes it the clearest place where a model
+  doing "resource utilisation" earns its keep: a wrong guess costs only idle GPU time, and a right guess
+  removes seconds of prefill from a later request.
 
 ## Tasks (on the M5 Max)
 
@@ -125,6 +153,21 @@ Add the cache. It is done when a session's second request, extending its first b
 only those tokens, and its output is consistent with a cold run (same seed; a lane-neighbour difference is
 acceptable). Then measure time to first token for a replayed multi-turn Claude session: the
 `tests/replay`-style trace from inky's repo, or recorded MCP calls.
+
+### Task 2b. Cartridges in the service, and what they cost in quality
+
+First check, in upstream `4be5bed`, which engine `.ikv` stitching runs in (the `kv256k` sparse engine or
+also the lane engine), and whether stitched requests can share lanes. Then:
+
+- Quality: reuse `ane-context-filter/factrecall.py`'s method (Sonnet-written tasks with required facts) on
+  files rather than transcripts. Answer each task from the same files twice, prefilled raw and loaded from
+  cartridges (WHT-KV4 on disk and in the pool, never K3V2 on both), with thinking off and on. Report facts
+  found for each, paired per task, with a confidence interval.
+- Speed: time to first token and wall time for 10K / 50K / 100K tokens of files, raw against cartridge,
+  and the compile cost per 1K tokens.
+
+Ship cartridges in the service only if the quality loss is small on our tasks. The author's chain-of-thought
+drop (25 to 16 of 25) says it may not be.
 
 ### Task 3. Coordinator, first version
 
