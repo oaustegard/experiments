@@ -4,15 +4,28 @@ Ternary Bonsai 2.5 is PrismML's 1.76-bit compression of Qwen3.8-27B. This experi
 Apple M5 Max (40 GPU cores, 128 GB, macOS 27.2.1, plugged in, Energy Mode Automatic) through
 PrismML's llama.cpp fork and through MLX. The question: how far from the machine's memory-bandwidth
 ceiling does decoding run, and where is the time going, so we know which kernel work would pay
-before anyone writes any. It is the first run of [`bench.py`](bench.py); one machine, one run per
-phase, so differences under about 5% are noise. Raw output is in `results/`.
+before anyone writes any. It is the first run of [`bench.py`](bench.py): one machine, and each
+configuration measured one to three times. Decode speed varies by up to about 5% between repeats and
+prefill by up to about 13%, so smaller differences than that are noise. Raw output is in `results/`.
+
+Terms. *Decode* is generating tokens one at a time; *prefill* is reading the prompt. *Ceiling* is
+memory bandwidth divided by the bytes read per generated token, the speed decode would reach if
+memory were the only limit. PQ2_0 (7.25 GB) and PTQ1_0 (5.99 GB, 1.76 bits per weight) are two ways
+of packing the same ternary weights; PQ2_0 is the one used unless named. *tg128* and *pp512* mean
+128 tokens generated and a 512-token prompt read. *Depth* is how many tokens of context are already
+in the cache when decoding starts. *ubatch* is how many prompt tokens one prefill step processes.
+*Tensor API* is Metal's interface to the M5's matrix-multiply hardware, the "matrix units".
+*MTP* (multi-token prediction) lets a small extra head draft the next token so the main model can
+check it in the same step. *GDN* is Gated DeltaNet, the recurrent layer type in 48 of the model's 64
+layers. *Core ML* is Apple's framework for running models on the Neural Engine.
+
+
 
 ## Answer
 
 Decoding PQ2_0 with the fork runs at 47.3 tok/s, 65% of the ceiling that the measured 549.6 GB/s allows. <!-- @evidence[[results/20261127-1800-Apple-M5-Max/summary.json#llama.PQ2_0.decode.rows.0.avg_ts]] -->
-The file-size ceiling slightly overstates the bytes, so the real gap is somewhat smaller than 35%,
-and this run did not profile where the rest goes. Prefill runs on the M5's matrix units: switching the tensor API off cuts it from 802 to 268 tok/s at 512 tokens. <!-- @evidence[[followups/tensor_ab.json#tensor_on.pp512.mean]] -->
-Prefill tile size does nothing (622 to 643 tok/s across ubatch 256 to 2048). Multi-token prediction speeds decode 1.19x. <!-- @evidence[[results/20261127-1830-Apple-M5-Max/summary.json#mtp.mtp_decode_ratio]] -->
+The ceiling counts the whole file, including an embedding table of which only one row is read per token, so it overstates the bytes read and the real gap is smaller than 35% by an amount this run did not measure. Where the rest goes was not profiled. Prefill runs on the M5's matrix units (an A/B and the source agree): switching the tensor API off cuts it from 802 to 268 tok/s at 512 tokens. <!-- @evidence[[followups/tensor_ab.json#tensor_on.pp512.mean]] -->
+Prefill tile size does nothing (619 to 643 tok/s across ubatch 256 to 2048). Multi-token prediction speeds decode 1.19x. <!-- @evidence[[results/20261127-1830-Apple-M5-Max/summary.json#mtp.mtp_decode_ratio]] -->
 Of the background loads tried, only CPU memory streaming slows GPU decode (33 to 37%); the Neural
 Engine, CPU arithmetic and CPU matrix math are within noise. The synthetic Core ML encoder ran
 entirely on the Neural Engine.
@@ -32,25 +45,25 @@ waits on.
    fork turns it on by default only for M5, M6, A19 and A20. The off figure at 512 tokens: 268 tok/s. <!-- @evidence[[followups/tensor_ab.json#tensor_off.pp512.mean]] -->
    (`followups/tensor_ab.json`; fork file `ggml/src/ggml-metal/ggml-metal-device.m`)
 3. **Prefill tile size is flat; prompt length costs 17%.** 8192-token prompt at ubatch 256, 512,
-   1024: 622, 643, 636 tok/s. <!-- @evidence[[results/20261127-1800-Apple-M5-Max/summary.json#llama.PQ2_0.ubatch_sweep.rows.1.avg_ts]] -->
+   1024, 2048: 622, 643, 636, 619 tok/s. The same 8192-token prompt at ubatch 512 read 668 tok/s in the prefill run and 643 here, so repeats differ by about 4%. <!-- @evidence[[results/20261127-1800-Apple-M5-Max/summary.json#llama.PQ2_0.ubatch_sweep.rows.1.avg_ts]] -->
    Prefill falls from 809 tok/s at 512 tokens to 668 at 8192. <!-- @evidence[[results/20261127-1800-Apple-M5-Max/summary.json#llama.PQ2_0.prefill.rows.2.avg_ts]] -->
    (`results/20261127-1800-Apple-M5-Max/summary.json`, `llama.PQ2_0.ubatch_sweep`, `prefill`)
 4. **Decode slows with context.** 47.3 tok/s at depth 0, 44.7 at 8192, 35.7 at 32768 (PQ2_0). <!-- @evidence[[results/20261127-1800-Apple-M5-Max/summary.json#llama.PQ2_0.decode.rows.2.avg_ts]] -->
    (`results/20261127-1800-Apple-M5-Max/summary.json`, `llama.PQ2_0.decode`)
-5. **MTP helps decode by 19% and leaves prefill alone.** `llama-server` on PQ2_0-mtp, six prompts:
+5. **MTP helps decode by 19% and does not slow prefill.** `llama-server` on PQ2_0-mtp, six prompts:
    45.8 tok/s off, 54.3 on, draft acceptance 0.914. <!-- @evidence[[results/20261127-1830-Apple-M5-Max/summary.json#mtp.mtp_on.draft_acceptance]] -->
-   The 8K prefill is 632 and 673 tok/s. (`results/20261127-1830-Apple-M5-Max/summary.json`, `mtp`)
+   The 8K prefill is 632 and 673 tok/s (one prompt per setting, within the prefill noise). (`results/20261127-1830-Apple-M5-Max/summary.json`, `mtp`)
 6. **Only CPU memory streaming slows GPU decode.** Decode against the mean of the run's first and
    last baseline, two runs: Neural Engine encoder -4.6% and +1.0%; CPU arithmetic -4.3% and +0.3%;
    CPU matrix math (Accelerate) -4.2% and +1.3%; CPU memory streaming -37.4% and -33.2%; Neural
    Engine plus memory streaming -37.6% and -36.1%. The baselines of one run differ by 1 to 5%, so
-   the first three rows are within noise. Prefill (2048): memory streaming -21% to -24%; the others
-   -8% to +4%. The loads slow too: the Neural Engine encoder by 3 to 4%, memory streaming 25%, CPU
+   the first three rows are within noise. Prefill baselines differ by 10 to 13% within a run, so
+   only memory streaming (-21% to -33% at 2048 tokens) is clear in prefill; the others, -8% to +4%, are noise. The loads slow too: the Neural Engine encoder by 3 to 4%, memory streaming 25%, CPU
    arithmetic and matrix math 18 to 28%. Memory-streaming decode in the second run: 30.1 tok/s. <!-- @evidence[[results/20261127-1858-Apple-M5-Max/summary.json#contention.cpu_mem.tg128]] -->
    (`results/20261127-1800-Apple-M5-Max/summary.json` and `results/20261127-1858-Apple-M5-Max/summary.json`, `contention`)
 7. **The synthetic Core ML encoder is fully on the Neural Engine, and it is 3x faster there than on
-   the CPU.** The 140 operations the first read listed as having no device are constants. 0.52 ms per
-   call on the Neural Engine, 1.54 on the CPU. All 74 compute operations are on the Neural Engine. <!-- @evidence[[results/20261127-1858-Apple-M5-Max/summary.json#contention.ane_setup.placement.MLNeuralEngineComputeDevice]] -->
+   the CPU.** The 140 operations the first read listed as having no device are constants. 0.50 ms per
+   call on the Neural Engine, 1.54 on the CPU (second run). All 74 compute operations are on the Neural Engine. <!-- @evidence[[results/20261127-1858-Apple-M5-Max/summary.json#contention.ane_setup.placement.MLNeuralEngineComputeDevice]] -->
    (`followups/synth_placement.txt`, `results/20261127-1858-Apple-M5-Max/summary.json`)
 8. **MLX is in the same range as the fork, with a different shape.** Median of three runs after a
    512-token prompt: 48.5 tok/s decode, 835 prefill; after 32768 tokens, 36.8 decode, 617 prefill.

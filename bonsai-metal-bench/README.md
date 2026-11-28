@@ -3,7 +3,7 @@
 A benchmark for Ternary Bonsai 2.5 27B on an Apple Silicon Mac. It measures how far
 llama.cpp and MLX run from the Mac's memory-bandwidth ceiling, so we can tell which kernel
 work would pay before writing any. Bonsai 2.5 is PrismML's ternary compression of
-Qwen3.8-27B: 1.76 bits per weight, 5.93 GB. On Macs, PrismML published only an M5 Pro run
+Qwen3.8-27B: 1.76 bits per weight, 5.99 GB (PTQ1_0; PQ2_0 is 7.25 GB). On Macs, PrismML published only an M5 Pro run
 (30.2 tok/s decode, 416 tok/s prefill on PQ2_0) and an M4 Pro MTP run (1.10–1.27x).
 
 **Status: run once on an M5 Max (2026-11-27); results in [`RESULTS.md`](RESULTS.md).** It needs a Mac GPU, and the container it was written in

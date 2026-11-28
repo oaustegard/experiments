@@ -3720,6 +3720,30 @@ The traps, each of which cost a revision:
   imitates (BFS), and keep TRM runs for a real GPU.
 - **Packing a small conv OCR model: 8-bit per-channel weights cost nothing measurable, 7-bit costs at tiny size, and a CTC head wants more than 4 bits.** PP-OCRv6 tiny and small (detector and recognizer), BatchNorm folded, int8 codes with one fp16 scale per output channel: codes within ±127 left the recognizer's character error unchanged within a 95% paired bootstrap interval (tiny recognizer on 400 real form lines +0.08%, interval -0.25 to +0.42); ±63 added +2.13% on tiny (+1.38 to +2.92) and ±31 more; the tiny detector's box F1 fell from 0.993 to 0.981 going from ±127 to ±63, while the small detector held 0.999 at ±63. The CTC output layer is about half of each recognizer's weights and is also the table from features to characters, so, like a token table, 4-bit there cost +0.09% on Latin lines (tiny). Do not carry a 6-bit result from a larger model down to a tiny one, and test the output layer's bits separately from the body's. Sample size matters: "not measurable" here means intervals of about ±0.4% on 400 lines. (`ppocr-pack/RESULTS.md`)
 
+### Apple Silicon: what slows a GPU decoding a local model (bonsai-metal-bench, ane-workloads)
+
+Measured on an M5 Max (128 GB) running Ternary Bonsai 2.5 27B through the PrismML llama.cpp fork, decode about 47 tok/s.
+
+- **CPU memory streaming costs GPU decode about a third; CPU arithmetic and matrix math do not.** Six CPU processes
+  streaming memory cut decode by 33 to 37% (prefill 21 to 24%) in two runs. Six processes of NEON arithmetic or Accelerate
+  sgemm were within noise (-4% to +1%). The GPU and CPU share one memory system, so the load that matters is bytes,
+  not cores. Run background work that reads large buffers at a time the GPU is idle. (`bonsai-metal-bench/RESULTS.md`, Finding 6)
+- **A Core ML model running continuously on the Neural Engine costs GPU decode 7 to 10%** (a 17M-parameter encoder at
+  about 1,000 pairs per second: 45.5 to 40.8, 45.0 to 41.8 and 45.1 to 41.7 tok/s). A synthetic 4 GFLOP encoder cost
+  within noise. The same models on the CPU slowed 44 to 89% when the GPU was busy, so Neural Engine placement is what
+  makes the work affordable beside a GPU. (`ane-workloads/RESULTS.md`, Finding 4)
+- **Bonsai's MTP head gains 1.19x on Metal at 0.914 draft acceptance** (45.8 to 54.3 tok/s, one drafted token; prefill
+  unchanged), well under the 1.9x a free verify would give. (`bonsai-metal-bench/RESULTS.md`, Finding 5)
+- **`ct.models.MLModel(path).get_compiled_model_path()` hands back a path that dies with the model object.** The temporary
+  is garbage-collected, coremltools deletes the compiled `.mlmodelc`, and `MLComputePlan.load_from_path` then fails with
+  "model is not found at URL". Keep the `MLModel` in a variable until the plan has loaded. (`ane-workloads/crossenc_coreml.py`)
+- **A GPU rate "during" a workload needs a window longer than one `llama-bench` run.** `llama-bench` reloads the model
+  per run and reports one rate per finished run, so a 4 to 40 s workload usually overlaps no finished run and the rate
+  comes back empty. Size the workload to several runs, or check `gpu_busy_fraction`. (`ane-workloads/common.py`)
+- **Apple Vision OCR is fast and weak on this benchmark; the loss is the recogniser, not the conversion.** 183 ms per page
+  and a score of 29 (text) or 40 (documents arm) against 79 for Indra OCR on the same 2,937 Omni Parse Bench pages; our
+  adapter lost 6 and 60 of 3,684 plain-text tests. (`ane-workloads/RESULTS.md`, Findings 6 and 7)
+
 ## Cache and measurement hygiene
 
 - **A byte-matching decompilation runner has to compare relocations by target, and has to be
