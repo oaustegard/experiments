@@ -1,0 +1,43 @@
+{
+	"systeminfo": "WHISPER : VITISAI = 0 | COREML = 1 | OPENVINO = 0 | MTL : EMBED_LIBRARY = 1 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | MATMUL_INT8 = 1 | DOTPROD = 1 | SME = 1 | SME2 = 1 | ACCELERATE = 1 | REPACK = 1 | ",
+	"model": {
+		"type": "large",
+		"multilingual": true,
+		"vocab": 51866,
+		"audio": {
+			"ctx": 1500,
+			"state": 1280,
+			"head": 20,
+			"layer": 32
+		},
+		"text": {
+			"ctx": 448,
+			"state": 1280,
+			"head": 20,
+			"layer": 4
+		},
+		"mels": 128,
+		"ftype": 1
+	},
+	"params": {
+		"model": "~/Documents/projects/personal/experiments/ane-workloads/work/whisper/ggml/ggml-large-v3-turbo.bin",
+		"language": "en",
+		"translate": false
+	},
+	"result": {
+		"language": "en"
+	},
+	"transcription": [
+		{
+			"timestamps": {
+				"from": "00:-16:-47,-300",
+				"to": "00:00:22,980"
+			},
+			"offsets": {
+				"from": -1007300,
+				"to": 22980
+			},
+			"text": " His mother had left her to him as being her destined protector, but when she saw that he too was insensible, she was near making a third, and would have done so had he not come to himself. Know then, son of my heart, that this fainting lady is your real bride. I say real because she is the one whom your father and I have chosen for you, and the portrait was a pretense."
+		}
+	]
+}

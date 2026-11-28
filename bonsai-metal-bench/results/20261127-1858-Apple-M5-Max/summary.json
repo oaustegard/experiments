@@ -1,0 +1,170 @@
+{
+ "env": {
+  "timestamp": "2026-11-27T18:58:36",
+  "chip": "Apple M5 Max",
+  "model": "Mac17,6",
+  "memsize_bytes": "137438953472",
+  "macos": "27.2.1",
+  "iogpu_wired_limit_mb": "0",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t78%; charging; (no estimate) present: true",
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "python": "3.15.0",
+  "low_power_mode": false,
+  "powermode": "0",
+  "gpu_cores": "40",
+  "on_ac_power": true
+ },
+ "args": {
+  "only": [
+   "contention"
+  ],
+  "reps": 3,
+  "depths": "0,8192,32768",
+  "mlx_sizes": "512,2048,8192,32768",
+  "mtp_rounds": 2,
+  "cooldown": 30,
+  "port": 18931,
+  "contention_procs": 0,
+  "contention_warm": 8,
+  "skip_mtp": false,
+  "ubatch_all": false,
+  "force": false
+ },
+ "contention": {
+  "fork_commit": "43f31f400c66dd44ce52a044119db77c271fed06",
+  "ane_setup": {
+   "coremltools": "9.0",
+   "gflop_per_call": 4.228,
+   "cpu_only": {
+    "load_s": 0.06,
+    "ms_median": 1.539
+   },
+   "cpu_gpu": {
+    "load_s": 0.06,
+    "ms_median": 0.722
+   },
+   "cpu_ne": {
+    "load_s": 0.3,
+    "ms_median": 0.503
+   },
+   "placement": {
+    "none": 140,
+    "MLNeuralEngineComputeDevice": 74
+   }
+  },
+  "cpu_procs": 6,
+  "baseline": {
+   "loads": [],
+   "n_procs": 0,
+   "pp2048": 673.155045,
+   "tg128": 43.99948,
+   "bench_error": null,
+   "bench_wall_s": 22.5
+  },
+  "ane": {
+   "loads": [
+    "ane"
+   ],
+   "n_procs": 1,
+   "pp2048": 743.544602,
+   "tg128": 45.510517,
+   "bench_error": null,
+   "bench_wall_s": 19.9,
+   "background": {
+    "ane": {
+     "unit": "calls/s",
+     "alone": 1884.13,
+     "during": 1823.51
+    }
+   }
+  },
+  "cpu_mem": {
+   "loads": [
+    "cpu_mem"
+   ],
+   "n_procs": 6,
+   "pp2048": 570.301457,
+   "tg128": 30.125507,
+   "bench_error": null,
+   "bench_wall_s": 27.0,
+   "background": {
+    "cpu_mem": {
+     "unit": "GB/s",
+     "alone": 407.51,
+     "during": 305.17
+    }
+   }
+  },
+  "cpu_compute": {
+   "loads": [
+    "cpu_compute"
+   ],
+   "n_procs": 6,
+   "pp2048": 717.701747,
+   "tg128": 45.199473,
+   "bench_error": null,
+   "bench_wall_s": 20.4,
+   "background": {
+    "cpu_compute": {
+     "unit": "Melem/s",
+     "alone": 4575.19,
+     "during": 3361.27
+    }
+   }
+  },
+  "cpu_matmul": {
+   "loads": [
+    "cpu_matmul"
+   ],
+   "n_procs": 6,
+   "pp2048": 658.031971,
+   "tg128": 45.673832,
+   "bench_error": null,
+   "bench_wall_s": 21.0,
+   "background": {
+    "cpu_matmul": {
+     "unit": "GFLOP/s",
+     "alone": 2975.09,
+     "during": 2439.75
+    }
+   }
+  },
+  "ane+cpu_mem": {
+   "loads": [
+    "ane",
+    "cpu_mem"
+   ],
+   "n_procs": 7,
+   "pp2048": 483.075118,
+   "tg128": 28.808109,
+   "bench_error": null,
+   "bench_wall_s": 29.7,
+   "background": {
+    "ane": {
+     "unit": "calls/s",
+     "alone": 1928.71,
+     "during": 1513.78
+    },
+    "cpu_mem": {
+     "unit": "GB/s",
+     "alone": 394.43,
+     "during": 304.1
+    }
+   }
+  },
+  "baseline_end": {
+   "loads": [],
+   "n_procs": 0,
+   "pp2048": 764.077142,
+   "tg128": 46.149367,
+   "bench_error": null,
+   "bench_wall_s": 19.5
+  }
+ },
+ "wall_s": {
+  "contention": 436
+ },
+ "env_after": {
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded"
+ }
+}

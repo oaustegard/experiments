@@ -1,0 +1,43 @@
+{
+	"systeminfo": "WHISPER : VITISAI = 0 | COREML = 1 | OPENVINO = 0 | MTL : EMBED_LIBRARY = 1 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | MATMUL_INT8 = 1 | DOTPROD = 1 | SME = 1 | SME2 = 1 | ACCELERATE = 1 | REPACK = 1 | ",
+	"model": {
+		"type": "large",
+		"multilingual": true,
+		"vocab": 51866,
+		"audio": {
+			"ctx": 1500,
+			"state": 1280,
+			"head": 20,
+			"layer": 32
+		},
+		"text": {
+			"ctx": 448,
+			"state": 1280,
+			"head": 20,
+			"layer": 4
+		},
+		"mels": 128,
+		"ftype": 1
+	},
+	"params": {
+		"model": "~/Documents/projects/personal/experiments/ane-workloads/work/whisper/ggml/ggml-large-v3-turbo.bin",
+		"language": "en",
+		"translate": false
+	},
+	"result": {
+		"language": "en"
+	},
+	"transcription": [
+		{
+			"timestamps": {
+				"from": "00:-16:-47,-300",
+				"to": "00:00:25,790"
+			},
+			"offsets": {
+				"from": -1007300,
+				"to": 25790
+			},
+			"text": " one hardly likes to throw suspicion where there are no proofs let us hear the suspicions i will look after the proofs my scholar has been left very poor but he is hard-working and industrious he will do well the top floor belongs to miles mclaren i dare not go so far as that but of the three he is perhaps the least unlikely he was still suffering from this sudden disturbance of the quiet routine of his life"
+		}
+	]
+}

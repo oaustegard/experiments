@@ -1,0 +1,43 @@
+{
+	"systeminfo": "WHISPER : VITISAI = 0 | COREML = 1 | OPENVINO = 0 | MTL : EMBED_LIBRARY = 1 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | MATMUL_INT8 = 1 | DOTPROD = 1 | SME = 1 | SME2 = 1 | ACCELERATE = 1 | REPACK = 1 | ",
+	"model": {
+		"type": "large",
+		"multilingual": true,
+		"vocab": 51866,
+		"audio": {
+			"ctx": 1500,
+			"state": 1280,
+			"head": 20,
+			"layer": 32
+		},
+		"text": {
+			"ctx": 448,
+			"state": 1280,
+			"head": 20,
+			"layer": 4
+		},
+		"mels": 128,
+		"ftype": 1
+	},
+	"params": {
+		"model": "~/Documents/projects/personal/experiments/ane-workloads/work/whisper/ggml/ggml-large-v3-turbo.bin",
+		"language": "en",
+		"translate": false
+	},
+	"result": {
+		"language": "en"
+	},
+	"transcription": [
+		{
+			"timestamps": {
+				"from": "00:-16:-47,-300",
+				"to": "00:00:27,590"
+			},
+			"offsets": {
+				"from": -1007300,
+				"to": 27590
+			},
+			"text": " olive had painted the motto on a long narrow panel of canvas and giving it to mr popham stood by the fireside while he deftly fitted it into the place prepared for it olive has another lovely gift for the yellow house said mother carrie rising and to carry out the next part of the programme we shall have to go in procession upstairs to my bedroom exclaimed bill harron to his wife as they went through the lighted hall"
+		}
+	]
+}

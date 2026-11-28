@@ -309,7 +309,10 @@ def placement(path, cu):
     import coremltools as ct
     from coremltools.models.compute_plan import MLComputePlan
 
-    compiled = ct.models.MLModel(str(path), compute_units=cu).get_compiled_model_path()
+    # Fix (first Mac run): keep the MLModel alive; if it is garbage-collected right after
+    # get_compiled_model_path(), coremltools deletes the compiled .mlmodelc and load_from_path fails.
+    model = ct.models.MLModel(str(path), compute_units=cu)
+    compiled = model.get_compiled_model_path()
     plan = MLComputePlan.load_from_path(path=compiled, compute_units=cu)
     counts, cost, off = {}, {}, {}
     for fn in plan.model_structure.program.functions.values():

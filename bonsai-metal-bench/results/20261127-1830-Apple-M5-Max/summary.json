@@ -1,0 +1,230 @@
+{
+ "env": {
+  "timestamp": "2026-11-27T18:30:17",
+  "chip": "Apple M5 Max",
+  "model": "Mac17,6",
+  "memsize_bytes": "137438953472",
+  "macos": "27.2.1",
+  "iogpu_wired_limit_mb": "0",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t76%; charging; 1:19 remaining present: true",
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "python": "3.15.0",
+  "low_power_mode": false,
+  "powermode": "0",
+  "gpu_cores": "40",
+  "on_ac_power": true
+ },
+ "args": {
+  "only": [
+   "mtp",
+   "mlx"
+  ],
+  "reps": 3,
+  "depths": "0,8192,32768",
+  "mlx_sizes": "512,2048,8192,32768",
+  "mtp_rounds": 2,
+  "cooldown": 30,
+  "port": 18931,
+  "contention_procs": 0,
+  "contention_warm": 8,
+  "skip_mtp": false,
+  "ubatch_all": false,
+  "force": false
+ },
+ "mtp": {
+  "fork_commit": "43f31f400c66dd44ce52a044119db77c271fed06",
+  "file_bytes": 7492338944,
+  "mtp_off": {
+   "decode_tok_s_median": 45.79,
+   "prefill_8k_tok_s_median": 632.3,
+   "draft_acceptance": null,
+   "errors": 0
+  },
+  "mtp_on": {
+   "decode_tok_s_median": 54.33,
+   "prefill_8k_tok_s_median": 672.7,
+   "draft_acceptance": 0.914,
+   "errors": 0
+  },
+  "mtp_decode_ratio": 1.187
+ },
+ "wall_s": {
+  "mtp": 965,
+  "mlx": 724
+ },
+ "mlx": {
+  "mlx_version": "0.32.0",
+  "metal_device": {
+   "device_name": "Apple M5 Max",
+   "max_recommended_working_set_size": 115448725504,
+   "memory_size": 137438953472,
+   "architecture": "applegpu_g17s",
+   "max_buffer_length": 86586540032,
+   "resource_limit": 499000
+  },
+  "load_s": 1.0,
+  "runs": {
+   "512": [
+    {
+     "wall_s": 3.24,
+     "prompt_tokens": 500,
+     "prompt_tps": 835.1724526913613,
+     "generation_tokens": 128,
+     "generation_tps": 48.51805917097094,
+     "peak_memory_gb": 10.3384203
+    },
+    {
+     "wall_s": 3.24,
+     "prompt_tokens": 500,
+     "prompt_tps": 835.5523626944756,
+     "generation_tokens": 128,
+     "generation_tps": 48.512993829651684,
+     "peak_memory_gb": 10.3384203
+    },
+    {
+     "wall_s": 3.37,
+     "prompt_tokens": 500,
+     "prompt_tps": 677.4215236878117,
+     "generation_tokens": 128,
+     "generation_tps": 48.78498392440189,
+     "peak_memory_gb": 10.3384203
+    }
+   ],
+   "2048": [
+    {
+     "wall_s": 5.62,
+     "prompt_tokens": 2036,
+     "prompt_tps": 702.7910935561363,
+     "generation_tokens": 128,
+     "generation_tps": 47.114422599548575,
+     "peak_memory_gb": 12.83470696
+    },
+    {
+     "wall_s": 5.65,
+     "prompt_tokens": 2036,
+     "prompt_tps": 737.6808253362375,
+     "generation_tokens": 128,
+     "generation_tps": 44.444405231486975,
+     "peak_memory_gb": 12.83470696
+    },
+    {
+     "wall_s": 5.78,
+     "prompt_tokens": 2036,
+     "prompt_tps": 688.7845479981697,
+     "generation_tokens": 128,
+     "generation_tps": 45.41429792111512,
+     "peak_memory_gb": 12.83470696
+    }
+   ],
+   "8192": [
+    {
+     "wall_s": 14.82,
+     "prompt_tokens": 8180,
+     "prompt_tps": 681.2913390089172,
+     "generation_tokens": 128,
+     "generation_tps": 45.774840663068005,
+     "peak_memory_gb": 12.996412896
+    },
+    {
+     "wall_s": 14.38,
+     "prompt_tokens": 8180,
+     "prompt_tps": 713.6440323258421,
+     "generation_tokens": 128,
+     "generation_tps": 44.01766666314884,
+     "peak_memory_gb": 12.996412896
+    },
+    {
+     "wall_s": 14.14,
+     "prompt_tokens": 8180,
+     "prompt_tps": 718.1413579831147,
+     "generation_tokens": 128,
+     "generation_tps": 46.86864222726176,
+     "peak_memory_gb": 12.996412896
+    }
+   ],
+   "32768": [
+    {
+     "wall_s": 54.79,
+     "prompt_tokens": 32756,
+     "prompt_tps": 638.56028011195,
+     "generation_tokens": 128,
+     "generation_tps": 36.959644311701375,
+     "peak_memory_gb": 17.255097858
+    },
+    {
+     "wall_s": 56.59,
+     "prompt_tokens": 32756,
+     "prompt_tps": 617.0595034545021,
+     "generation_tokens": 128,
+     "generation_tps": 36.83429078353906,
+     "peak_memory_gb": 17.255097858
+    },
+    {
+     "wall_s": 56.74,
+     "prompt_tokens": 32756,
+     "prompt_tps": 615.5946555374984,
+     "generation_tokens": 128,
+     "generation_tps": 36.62099683779221,
+     "peak_memory_gb": 17.255097858
+    }
+   ]
+  },
+  "mtp": {
+   "off": [
+    {
+     "wall_s": 7.71,
+     "prompt_tokens": 1012,
+     "prompt_tps": 530.818252385933,
+     "generation_tokens": 256,
+     "generation_tps": 44.17569109699399,
+     "peak_memory_gb": 17.255097858
+    },
+    {
+     "wall_s": 7.6,
+     "prompt_tokens": 1012,
+     "prompt_tps": 629.555238865625,
+     "generation_tokens": 256,
+     "generation_tps": 42.74535998406688,
+     "peak_memory_gb": 17.255097858
+    },
+    {
+     "wall_s": 7.61,
+     "prompt_tokens": 1012,
+     "prompt_tps": 568.0179647943654,
+     "generation_tokens": 256,
+     "generation_tps": 43.94355373259461,
+     "peak_memory_gb": 17.255097858
+    }
+   ],
+   "on": [
+    {
+     "wall_s": 7.32,
+     "prompt_tokens": 1012,
+     "prompt_tps": 545.121679418888,
+     "generation_tokens": 256,
+     "generation_tps": 46.98927788664218,
+     "peak_memory_gb": 17.255097858
+    },
+    {
+     "wall_s": 6.78,
+     "prompt_tokens": 1012,
+     "prompt_tps": 642.5481988775899,
+     "generation_tokens": 256,
+     "generation_tps": 49.330831367953955,
+     "peak_memory_gb": 17.255097858
+    },
+    {
+     "wall_s": 7.04,
+     "prompt_tokens": 1012,
+     "prompt_tps": 567.0244070697208,
+     "generation_tokens": 256,
+     "generation_tps": 48.85870743077403,
+     "peak_memory_gb": 17.255097858
+    }
+   ]
+  }
+ },
+ "env_after": {
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded"
+ }
+}

@@ -1,0 +1,439 @@
+{
+ "env": {
+  "timestamp": "2026-11-27T18:00:06",
+  "chip": "Apple M5 Max",
+  "model": "Mac17,6",
+  "memsize_bytes": "137438953472",
+  "macos": "27.2.1",
+  "iogpu_wired_limit_mb": "0",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t80%; AC attached; not charging present: true",
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "python": "3.15.0",
+  "low_power_mode": false,
+  "powermode": "0",
+  "gpu_cores": "40",
+  "on_ac_power": true
+ },
+ "args": {
+  "only": [
+   "bw",
+   "llama",
+   "contention"
+  ],
+  "reps": 3,
+  "depths": "0,8192,32768",
+  "mlx_sizes": "512,2048,8192,32768",
+  "mtp_rounds": 2,
+  "cooldown": 30,
+  "port": 18931,
+  "contention_procs": 0,
+  "contention_warm": 8,
+  "skip_mtp": false,
+  "ubatch_all": false,
+  "force": false
+ },
+ "bw": {
+  "mlx_version": "0.32.0",
+  "metal_device": {
+   "device_name": "Apple M5 Max",
+   "max_recommended_working_set_size": 115448725504,
+   "memory_size": 137438953472,
+   "architecture": "applegpu_g17s",
+   "max_buffer_length": 86586540032,
+   "resource_limit": 499000
+  },
+  "bw": {
+   "matvec_f16_GBps_best": 542.4,
+   "matvec_f16_GBps_median": 516.8,
+   "sum_f16_GBps_best": 549.6,
+   "sum_f16_GBps_median": 526.4
+  }
+ },
+ "wall_s": {
+  "bw": 33,
+  "llama": 900,
+  "contention": 436
+ },
+ "llama": {
+  "fork_commit": "43f31f400c66dd44ce52a044119db77c271fed06",
+  "file_bytes": {
+   "PQ2_0": 7253354848,
+   "PTQ1_0": 5993834848
+  },
+  "PQ2_0": {
+   "prefill": {
+    "rows": [
+     {
+      "n_prompt": 512,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 809.075057,
+      "stddev_ts": 0.391536,
+      "avg_ns": 632821486,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 2048,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 746.1594,
+      "stddev_ts": 14.149329,
+      "avg_ns": 2745377708,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 8192,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 668.099539,
+      "stddev_ts": 8.094141,
+      "avg_ns": 12262841944,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     }
+    ]
+   },
+   "decode": {
+    "rows": [
+     {
+      "n_prompt": 0,
+      "n_gen": 128,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 47.274118,
+      "stddev_ts": 0.334944,
+      "avg_ns": 2707680625,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 0,
+      "n_gen": 128,
+      "n_depth": 8192,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 44.677929,
+      "stddev_ts": 0.6042,
+      "avg_ns": 2865211291,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 0,
+      "n_gen": 128,
+      "n_depth": 32768,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 35.740272,
+      "stddev_ts": 2.029019,
+      "avg_ns": 3587174771,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     }
+    ]
+   },
+   "ubatch_sweep": {
+    "rows": [
+     {
+      "n_prompt": 8192,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 256,
+      "avg_ts": 622.470306,
+      "stddev_ts": 1.607143,
+      "avg_ns": 13160510999,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 8192,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 642.549335,
+      "stddev_ts": 9.134162,
+      "avg_ns": 12750503896,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 8192,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 1024,
+      "avg_ts": 635.993462,
+      "stddev_ts": 21.708752,
+      "avg_ns": 12888143562,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 8192,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 2048,
+      "avg_ts": 618.619846,
+      "stddev_ts": 5.009155,
+      "avg_ns": 13242815625,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     }
+    ]
+   }
+  },
+  "PTQ1_0": {
+   "prefill": {
+    "rows": [
+     {
+      "n_prompt": 512,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 585.067969,
+      "stddev_ts": 28.737915,
+      "avg_ns": 876538722,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 2048,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 650.914883,
+      "stddev_ts": 1.80937,
+      "avg_ns": 3146356944,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 8192,
+      "n_gen": 0,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 635.3763,
+      "stddev_ts": 7.740514,
+      "avg_ns": 12894430569,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     }
+    ]
+   },
+   "decode": {
+    "rows": [
+     {
+      "n_prompt": 0,
+      "n_gen": 128,
+      "n_depth": 0,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 44.274863,
+      "stddev_ts": 2.688589,
+      "avg_ns": 2896371187,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 0,
+      "n_gen": 128,
+      "n_depth": 8192,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 38.741716,
+      "stddev_ts": 2.000164,
+      "avg_ns": 3308341271,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     },
+     {
+      "n_prompt": 0,
+      "n_gen": 128,
+      "n_depth": 32768,
+      "n_batch": 2048,
+      "n_ubatch": 512,
+      "avg_ts": 32.023555,
+      "stddev_ts": 1.645196,
+      "avg_ns": 4002339604,
+      "type_k": "f16",
+      "build_commit": "43f31f4"
+     }
+    ]
+   }
+  }
+ },
+ "contention": {
+  "fork_commit": "43f31f400c66dd44ce52a044119db77c271fed06",
+  "ane_setup": {
+   "coremltools": "9.0",
+   "gflop_per_call": 4.228,
+   "cpu_only": {
+    "load_s": 0.06,
+    "ms_median": 1.543
+   },
+   "cpu_gpu": {
+    "load_s": 0.06,
+    "ms_median": 1.504
+   },
+   "cpu_ne": {
+    "load_s": 0.3,
+    "ms_median": 0.524
+   },
+   "placement_error": "RuntimeError('{\\n    NSLocalizedDescription = \"The model is not found at URL: file:///var/folders/3j/zrk6d42d15x4vswfldr2b714f7z28s/T/synthetic_A2B84F80-63B6-45FD-910C-1E1EBBB82830.mlmodelc\";\\n}')"
+  },
+  "cpu_procs": 6,
+  "baseline": {
+   "loads": [],
+   "n_procs": 0,
+   "pp2048": 698.806031,
+   "tg128": 47.63758,
+   "bench_error": null,
+   "bench_wall_s": 20.5
+  },
+  "ane": {
+   "loads": [
+    "ane"
+   ],
+   "n_procs": 1,
+   "pp2048": 746.082625,
+   "tg128": 45.323496,
+   "bench_error": null,
+   "bench_wall_s": 19.8,
+   "background": {
+    "ane": {
+     "unit": "calls/s",
+     "alone": 1902.99,
+     "during": 1827.49
+    }
+   }
+  },
+  "cpu_mem": {
+   "loads": [
+    "cpu_mem"
+   ],
+   "n_procs": 6,
+   "pp2048": 557.209385,
+   "tg128": 29.73774,
+   "bench_error": null,
+   "bench_wall_s": 27.5,
+   "background": {
+    "cpu_mem": {
+     "unit": "GB/s",
+     "alone": 406.3,
+     "during": 305.33
+    }
+   }
+  },
+  "cpu_compute": {
+   "loads": [
+    "cpu_compute"
+   ],
+   "n_procs": 6,
+   "pp2048": 725.556484,
+   "tg128": 45.449739,
+   "bench_error": null,
+   "bench_wall_s": 20.2,
+   "background": {
+    "cpu_compute": {
+     "unit": "Melem/s",
+     "alone": 4536.27,
+     "during": 3289.28
+    }
+   }
+  },
+  "cpu_matmul": {
+   "loads": [
+    "cpu_matmul"
+   ],
+   "n_procs": 6,
+   "pp2048": 707.31931,
+   "tg128": 45.496529,
+   "bench_error": null,
+   "bench_wall_s": 20.3,
+   "background": {
+    "cpu_matmul": {
+     "unit": "GFLOP/s",
+     "alone": 2993.84,
+     "during": 2164.56
+    }
+   }
+  },
+  "ane+cpu_mem": {
+   "loads": [
+    "ane",
+    "cpu_mem"
+   ],
+   "n_procs": 7,
+   "pp2048": 551.74166,
+   "tg128": 29.626754,
+   "bench_error": null,
+   "bench_wall_s": 27.9,
+   "background": {
+    "ane": {
+     "unit": "calls/s",
+     "alone": 1917.08,
+     "during": 1390.83
+    },
+    "cpu_mem": {
+     "unit": "GB/s",
+     "alone": 391.15,
+     "during": 295.49
+    }
+   }
+  },
+  "baseline_end": {
+   "loads": [],
+   "n_procs": 0,
+   "pp2048": 772.962862,
+   "tg128": 47.334135,
+   "bench_error": null,
+   "bench_wall_s": 19.2
+  }
+ },
+ "env_after": {
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded"
+ },
+ "derived": {
+  "PQ2_0": {
+   "pp": [
+    809.075057,
+    746.1594,
+    668.099539
+   ],
+   "tg": [
+    47.274118,
+    44.677929,
+    35.740272
+   ],
+   "ceiling_tg0": 72.7
+  },
+  "PTQ1_0": {
+   "pp": [
+    585.067969,
+    650.914883,
+    635.3763
+   ],
+   "tg": [
+    44.274863,
+    38.741716,
+    32.023555
+   ],
+   "ceiling_tg0": 87.3
+  }
+ }
+}

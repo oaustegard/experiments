@@ -1,0 +1,726 @@
+{
+ "env": {
+  "timestamp": "2026-11-27T19:14:03",
+  "platform": "Darwin arm64",
+  "chip": "Apple M5 Max",
+  "model": "Mac17,6",
+  "memsize_bytes": "137438953472",
+  "perf_cores": "6",
+  "macos": "27.2.1",
+  "macos_build": "26B131",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t76%; charging; (no estimate) present: true",
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "python": "3.12.16",
+  "low_power_mode": false,
+  "on_ac_power": true,
+  "powermode": "0"
+ },
+ "args": {
+  "weights": "/tmp/ctxfilter-data/ane-context-filter/models/student17-fp16.pt",
+  "init": "jhu-clsp/ettin-encoder-17m",
+  "seq": "384",
+  "batches": "1,16",
+  "precision": "fp16",
+  "norms": "plain,prescaled",
+  "units": "CPU_AND_NE,CPU_ONLY",
+  "seconds": "15",
+  "pairs": "None",
+  "convert_only": "False",
+  "force": "False",
+  "no_gpu_busy": "False",
+  "llama_bench": "None",
+  "gpu_model": "None",
+  "gpu_n": "512",
+  "gpu_reps": "6",
+  "gpu_settle": "20"
+ },
+ "versions": {
+  "torch": "2.7.0",
+  "transformers": "4.57.6",
+  "coremltools": "9.0",
+  "numpy": "2.3.5"
+ },
+ "weights": "student (private)",
+ "torch_parity": {
+  "plain": {
+   "pairs": 28,
+   "tokens_min_max": [
+    50,
+    384
+   ],
+   "max_abs_logit_diff": 4.887580871582031e-06,
+   "max_abs_prob_diff": 8.940696716308594e-07,
+   "max_abs_logit_diff_vs_unpadded": 4.887580871582031e-06,
+   "logit_range": [
+    -1.2335010766983032,
+    0.8505076169967651
+   ],
+   "norm_input_peak": 1131.36,
+   "fp16_max_abs_logit_diff": 0.407806396484375,
+   "fp16_max_abs_prob_diff": 0.09558254480361938,
+   "fp16_finite": true
+  },
+  "prescaled": {
+   "pairs": 28,
+   "tokens_min_max": [
+    50,
+    384
+   ],
+   "max_abs_logit_diff": 4.887580871582031e-06,
+   "max_abs_prob_diff": 8.940696716308594e-07,
+   "max_abs_logit_diff_vs_unpadded": 4.887580871582031e-06,
+   "logit_range": [
+    -1.2335010766983032,
+    0.8505076169967651
+   ],
+   "norm_input_peak": 1131.36,
+   "fp16_max_abs_logit_diff": 0.002462923526763916,
+   "fp16_max_abs_prob_diff": 0.0005598068237304688,
+   "fp16_finite": true
+  }
+ },
+ "norm_prescale": {
+  "emb_norm": [
+   0.32,
+   1.0
+  ],
+  "layers.0.mlp_norm": [
+   18.37,
+   1.0
+  ],
+  "layers.1.attn_norm": [
+   1126.85,
+   0.015625
+  ],
+  "layers.1.mlp_norm": [
+   1126.0,
+   0.015625
+  ],
+  "layers.2.attn_norm": [
+   1130.58,
+   0.015625
+  ],
+  "layers.2.mlp_norm": [
+   1130.05,
+   0.015625
+  ],
+  "layers.3.attn_norm": [
+   1131.36,
+   0.015625
+  ],
+  "layers.3.mlp_norm": [
+   1126.27,
+   0.015625
+  ],
+  "layers.4.attn_norm": [
+   1126.91,
+   0.015625
+  ],
+  "layers.4.mlp_norm": [
+   1124.72,
+   0.015625
+  ],
+  "layers.5.attn_norm": [
+   1122.52,
+   0.015625
+  ],
+  "layers.5.mlp_norm": [
+   1121.57,
+   0.015625
+  ],
+  "layers.6.attn_norm": [
+   1122.42,
+   0.015625
+  ],
+  "layers.6.mlp_norm": [
+   1126.0,
+   0.015625
+  ],
+  "final_norm": [
+   42.68,
+   0.5
+  ],
+  "hln": [
+   20.28,
+   1.0
+  ]
+ },
+ "models": {
+  "plain-b1": {
+   "package": "scorer-student-plain-b1-s384-fp16.mlpackage",
+   "norms": "plain",
+   "batch": 1,
+   "convert_s": 2.0,
+   "package_mb": 32.8,
+   "mil_ops": 707,
+   "mil_op_types": {
+    "const": 906,
+    "greater_equal": 1,
+    "add": 100,
+    "select": 1,
+    "gather": 1,
+    "transpose": 29,
+    "expand_dims": 3,
+    "layer_norm": 16,
+    "mul": 219,
+    "cast": 1,
+    "sub": 1,
+    "conv": 30,
+    "split": 35,
+    "slice_by_index": 113,
+    "concat": 63,
+    "einsum": 56,
+    "softmax": 28,
+    "gelu": 8,
+    "batch_norm": 1,
+    "reshape": 1
+   },
+   "placement": {
+    "CPU_AND_NE": {
+     "ops": {
+      "MLCPUComputeDevice": 4,
+      "MLNeuralEngineComputeDevice": 703
+     },
+     "cost_share": {
+      "MLCPUComputeDevice": 0.2664,
+      "MLNeuralEngineComputeDevice": 0.7336
+     },
+     "not_on_neural_engine": {
+      "MLCPUComputeDevice": {
+       "ios18.greater_equal": 1,
+       "ios18.add": 1,
+       "select": 1,
+       "ios18.gather": 1
+      }
+     }
+    },
+    "CPU_ONLY": {
+     "ops": {
+      "MLCPUComputeDevice": 707
+     },
+     "cost_share": {
+      "MLCPUComputeDevice": 1.0
+     },
+     "not_on_neural_engine": {
+      "MLCPUComputeDevice": {
+       "ios18.greater_equal": 1,
+       "ios18.add": 100,
+       "select": 1,
+       "ios18.gather": 1,
+       "ios18.transpose": 29,
+       "ios18.expand_dims": 3,
+       "ios18.layer_norm": 16,
+       "ios18.mul": 219,
+       "ios18.cast": 1,
+       "ios18.sub": 1,
+       "ios18.conv": 30,
+       "split": 35,
+       "ios18.slice_by_index": 113,
+       "ios18.concat": 63,
+       "ios16.einsum": 56,
+       "ios18.softmax": 28,
+       "ios18.gelu": 8,
+       "ios18.batch_norm": 1,
+       "ios18.reshape": 1
+      }
+     }
+    }
+   },
+   "timing": {
+    "idle": {
+     "CPU_AND_NE": {
+      "load_s_first": 1.665,
+      "load_s_second": 1.624,
+      "max_abs_logit_diff_vs_torch": 0.0014982223510742188,
+      "max_abs_prob_diff_vs_torch": 0.0003662109375,
+      "finite": true,
+      "calls": 15673,
+      "ms_per_call_median": 0.958,
+      "ms_per_call_p90": 0.984,
+      "ms_per_pair": 0.958,
+      "pairs_per_s": 1044.2
+     },
+     "CPU_ONLY": {
+      "load_s_first": 0.162,
+      "load_s_second": 0.157,
+      "max_abs_logit_diff_vs_torch": 0.0010099411010742188,
+      "max_abs_prob_diff_vs_torch": 0.0002468526363372803,
+      "finite": true,
+      "calls": 5801,
+      "ms_per_call_median": 2.589,
+      "ms_per_call_p90": 2.621,
+      "ms_per_pair": 2.589,
+      "pairs_per_s": 386.3
+     }
+    },
+    "busy": {
+     "CPU_AND_NE": {
+      "load_s_first": 1.923,
+      "load_s_second": 1.951,
+      "max_abs_logit_diff_vs_torch": 0.0014982223510742188,
+      "max_abs_prob_diff_vs_torch": 0.0003662109375,
+      "finite": true,
+      "calls": 14410,
+      "ms_per_call_median": 1.043,
+      "ms_per_call_p90": 1.087,
+      "ms_per_pair": 1.043,
+      "pairs_per_s": 959.1,
+      "gpu_busy_fraction": 1.0,
+      "gpu_alone_tok_s": 44.97,
+      "gpu_during_tok_s": null
+     },
+     "CPU_ONLY": {
+      "load_s_first": 0.19,
+      "load_s_second": 0.184,
+      "max_abs_logit_diff_vs_torch": 0.0010099411010742188,
+      "max_abs_prob_diff_vs_torch": 0.0002468526363372803,
+      "finite": true,
+      "calls": 3967,
+      "ms_per_call_median": 3.734,
+      "ms_per_call_p90": 4.535,
+      "ms_per_pair": 3.734,
+      "pairs_per_s": 267.8,
+      "gpu_busy_fraction": 1.0,
+      "gpu_alone_tok_s": 44.97,
+      "gpu_during_tok_s": null
+     }
+    }
+   }
+  },
+  "plain-b16": {
+   "package": "scorer-student-plain-b16-s384-fp16.mlpackage",
+   "norms": "plain",
+   "batch": 16,
+   "convert_s": 2.0,
+   "package_mb": 32.8,
+   "mil_ops": 707,
+   "mil_op_types": {
+    "const": 906,
+    "greater_equal": 1,
+    "add": 100,
+    "select": 1,
+    "gather": 1,
+    "transpose": 29,
+    "expand_dims": 3,
+    "layer_norm": 16,
+    "mul": 219,
+    "cast": 1,
+    "sub": 1,
+    "conv": 30,
+    "split": 35,
+    "slice_by_index": 113,
+    "concat": 63,
+    "einsum": 56,
+    "softmax": 28,
+    "gelu": 8,
+    "batch_norm": 1,
+    "reshape": 1
+   },
+   "placement": {
+    "CPU_AND_NE": {
+     "ops": {
+      "MLCPUComputeDevice": 4,
+      "MLNeuralEngineComputeDevice": 703
+     },
+     "cost_share": {
+      "MLCPUComputeDevice": 0.0349,
+      "MLNeuralEngineComputeDevice": 0.9651
+     },
+     "not_on_neural_engine": {
+      "MLCPUComputeDevice": {
+       "ios18.greater_equal": 1,
+       "ios18.add": 1,
+       "select": 1,
+       "ios18.gather": 1
+      }
+     }
+    },
+    "CPU_ONLY": {
+     "ops": {
+      "MLCPUComputeDevice": 707
+     },
+     "cost_share": {
+      "MLCPUComputeDevice": 1.0
+     },
+     "not_on_neural_engine": {
+      "MLCPUComputeDevice": {
+       "ios18.greater_equal": 1,
+       "ios18.add": 100,
+       "select": 1,
+       "ios18.gather": 1,
+       "ios18.transpose": 29,
+       "ios18.expand_dims": 3,
+       "ios18.layer_norm": 16,
+       "ios18.mul": 219,
+       "ios18.cast": 1,
+       "ios18.sub": 1,
+       "ios18.conv": 30,
+       "split": 35,
+       "ios18.slice_by_index": 113,
+       "ios18.concat": 63,
+       "ios16.einsum": 56,
+       "ios18.softmax": 28,
+       "ios18.gelu": 8,
+       "ios18.batch_norm": 1,
+       "ios18.reshape": 1
+      }
+     }
+    }
+   },
+   "timing": {
+    "idle": {
+     "CPU_AND_NE": {
+      "load_s_first": 2.994,
+      "load_s_second": 3.031,
+      "max_abs_logit_diff_vs_torch": 0.0034541040658950806,
+      "max_abs_prob_diff_vs_torch": 0.0008618831634521484,
+      "finite": true,
+      "calls": 882,
+      "ms_per_call_median": 16.995,
+      "ms_per_call_p90": 17.135,
+      "ms_per_pair": 1.062,
+      "pairs_per_s": 941.4
+     },
+     "CPU_ONLY": {
+      "load_s_first": 0.165,
+      "load_s_second": 0.164,
+      "max_abs_logit_diff_vs_torch": 0.015777587890625,
+      "max_abs_prob_diff_vs_torch": 0.0038640499114990234,
+      "finite": true,
+      "calls": 518,
+      "ms_per_call_median": 29.009,
+      "ms_per_call_p90": 29.526,
+      "ms_per_pair": 1.813,
+      "pairs_per_s": 551.6
+     }
+    },
+    "busy": {
+     "CPU_AND_NE": {
+      "load_s_first": 4.422,
+      "load_s_second": 4.174,
+      "max_abs_logit_diff_vs_torch": 0.0034541040658950806,
+      "max_abs_prob_diff_vs_torch": 0.0008618831634521484,
+      "finite": true,
+      "calls": 832,
+      "ms_per_call_median": 17.768,
+      "ms_per_call_p90": 20.288,
+      "ms_per_pair": 1.111,
+      "pairs_per_s": 900.5,
+      "gpu_busy_fraction": 0.712,
+      "gpu_alone_tok_s": 44.97,
+      "gpu_during_tok_s": 41.84
+     },
+     "CPU_ONLY": {
+      "load_s_first": 0.192,
+      "load_s_second": 0.182,
+      "max_abs_logit_diff_vs_torch": 0.015777587890625,
+      "max_abs_prob_diff_vs_torch": 0.0038640499114990234,
+      "finite": true,
+      "calls": 283,
+      "ms_per_call_median": 54.941,
+      "ms_per_call_p90": 59.244,
+      "ms_per_pair": 3.434,
+      "pairs_per_s": 291.2,
+      "gpu_busy_fraction": 1.0,
+      "gpu_alone_tok_s": 44.97,
+      "gpu_during_tok_s": null
+     }
+    }
+   }
+  },
+  "prescaled-b1": {
+   "package": "scorer-student-prescaled-b1-s384-fp16.mlpackage",
+   "norms": "prescaled",
+   "batch": 1,
+   "convert_s": 2.0,
+   "package_mb": 32.8,
+   "mil_ops": 798,
+   "mil_op_types": {
+    "const": 971,
+    "greater_equal": 1,
+    "add": 113,
+    "select": 1,
+    "gather": 1,
+    "transpose": 29,
+    "expand_dims": 3,
+    "layer_norm": 3,
+    "mul": 258,
+    "cast": 1,
+    "sub": 14,
+    "conv": 30,
+    "split": 35,
+    "slice_by_index": 113,
+    "concat": 63,
+    "einsum": 56,
+    "softmax": 28,
+    "gelu": 8,
+    "reduce_mean": 26,
+    "rsqrt": 13,
+    "batch_norm": 1,
+    "reshape": 1
+   },
+   "placement": {
+    "CPU_AND_NE": {
+     "ops": {
+      "MLCPUComputeDevice": 4,
+      "MLNeuralEngineComputeDevice": 794
+     },
+     "cost_share": {
+      "MLCPUComputeDevice": 0.2513,
+      "MLNeuralEngineComputeDevice": 0.7487
+     },
+     "not_on_neural_engine": {
+      "MLCPUComputeDevice": {
+       "ios18.greater_equal": 1,
+       "ios18.add": 1,
+       "select": 1,
+       "ios18.gather": 1
+      }
+     }
+    },
+    "CPU_ONLY": {
+     "ops": {
+      "MLCPUComputeDevice": 798
+     },
+     "cost_share": {
+      "MLCPUComputeDevice": 1.0
+     },
+     "not_on_neural_engine": {
+      "MLCPUComputeDevice": {
+       "ios18.greater_equal": 1,
+       "ios18.add": 113,
+       "select": 1,
+       "ios18.gather": 1,
+       "ios18.transpose": 29,
+       "ios18.expand_dims": 3,
+       "ios18.layer_norm": 3,
+       "ios18.mul": 258,
+       "ios18.cast": 1,
+       "ios18.sub": 14,
+       "ios18.conv": 30,
+       "split": 35,
+       "ios18.slice_by_index": 113,
+       "ios18.concat": 63,
+       "ios16.einsum": 56,
+       "ios18.softmax": 28,
+       "ios18.gelu": 8,
+       "ios16.reduce_mean": 26,
+       "ios18.rsqrt": 13,
+       "ios18.batch_norm": 1,
+       "ios18.reshape": 1
+      }
+     }
+    }
+   },
+   "timing": {
+    "idle": {
+     "CPU_AND_NE": {
+      "load_s_first": 1.747,
+      "load_s_second": 1.738,
+      "max_abs_logit_diff_vs_torch": 0.0012540817260742188,
+      "max_abs_prob_diff_vs_torch": 0.0003065168857574463,
+      "finite": true,
+      "calls": 15652,
+      "ms_per_call_median": 0.956,
+      "ms_per_call_p90": 0.986,
+      "ms_per_pair": 0.956,
+      "pairs_per_s": 1046.2
+     },
+     "CPU_ONLY": {
+      "load_s_first": 0.177,
+      "load_s_second": 0.174,
+      "max_abs_logit_diff_vs_torch": 0.0007658004760742188,
+      "max_abs_prob_diff_vs_torch": 0.00018718838691711426,
+      "finite": true,
+      "calls": 5271,
+      "ms_per_call_median": 2.847,
+      "ms_per_call_p90": 2.884,
+      "ms_per_pair": 2.847,
+      "pairs_per_s": 351.2
+     }
+    },
+    "busy": {
+     "CPU_AND_NE": {
+      "load_s_first": 2.993,
+      "load_s_second": 2.561,
+      "max_abs_logit_diff_vs_torch": 0.0012540817260742188,
+      "max_abs_prob_diff_vs_torch": 0.0003065168857574463,
+      "finite": true,
+      "calls": 13872,
+      "ms_per_call_median": 1.073,
+      "ms_per_call_p90": 1.143,
+      "ms_per_pair": 1.073,
+      "pairs_per_s": 932.3,
+      "gpu_busy_fraction": 1.0,
+      "gpu_alone_tok_s": 44.97,
+      "gpu_during_tok_s": null
+     },
+     "CPU_ONLY": {
+      "load_s_first": 0.186,
+      "load_s_second": 0.184,
+      "max_abs_logit_diff_vs_torch": 0.0007658004760742188,
+      "max_abs_prob_diff_vs_torch": 0.00018718838691711426,
+      "finite": true,
+      "calls": 3556,
+      "ms_per_call_median": 4.166,
+      "ms_per_call_p90": 4.953,
+      "ms_per_pair": 4.166,
+      "pairs_per_s": 240.0,
+      "gpu_busy_fraction": 1.0,
+      "gpu_alone_tok_s": 44.97,
+      "gpu_during_tok_s": null
+     }
+    }
+   }
+  },
+  "prescaled-b16": {
+   "package": "scorer-student-prescaled-b16-s384-fp16.mlpackage",
+   "norms": "prescaled",
+   "batch": 16,
+   "convert_s": 2.1,
+   "package_mb": 32.8,
+   "mil_ops": 798,
+   "mil_op_types": {
+    "const": 971,
+    "greater_equal": 1,
+    "add": 113,
+    "select": 1,
+    "gather": 1,
+    "transpose": 29,
+    "expand_dims": 3,
+    "layer_norm": 3,
+    "mul": 258,
+    "cast": 1,
+    "sub": 14,
+    "conv": 30,
+    "split": 35,
+    "slice_by_index": 113,
+    "concat": 63,
+    "einsum": 56,
+    "softmax": 28,
+    "gelu": 8,
+    "reduce_mean": 26,
+    "rsqrt": 13,
+    "batch_norm": 1,
+    "reshape": 1
+   },
+   "placement": {
+    "CPU_AND_NE": {
+     "ops": {
+      "MLCPUComputeDevice": 4,
+      "MLNeuralEngineComputeDevice": 794
+     },
+     "cost_share": {
+      "MLCPUComputeDevice": 0.0324,
+      "MLNeuralEngineComputeDevice": 0.9676
+     },
+     "not_on_neural_engine": {
+      "MLCPUComputeDevice": {
+       "ios18.greater_equal": 1,
+       "ios18.add": 1,
+       "select": 1,
+       "ios18.gather": 1
+      }
+     }
+    },
+    "CPU_ONLY": {
+     "ops": {
+      "MLCPUComputeDevice": 798
+     },
+     "cost_share": {
+      "MLCPUComputeDevice": 1.0
+     },
+     "not_on_neural_engine": {
+      "MLCPUComputeDevice": {
+       "ios18.greater_equal": 1,
+       "ios18.add": 113,
+       "select": 1,
+       "ios18.gather": 1,
+       "ios18.transpose": 29,
+       "ios18.expand_dims": 3,
+       "ios18.layer_norm": 3,
+       "ios18.mul": 258,
+       "ios18.cast": 1,
+       "ios18.sub": 14,
+       "ios18.conv": 30,
+       "split": 35,
+       "ios18.slice_by_index": 113,
+       "ios18.concat": 63,
+       "ios16.einsum": 56,
+       "ios18.softmax": 28,
+       "ios18.gelu": 8,
+       "ios16.reduce_mean": 26,
+       "ios18.rsqrt": 13,
+       "ios18.batch_norm": 1,
+       "ios18.reshape": 1
+      }
+     }
+    }
+   },
+   "timing": {
+    "idle": {
+     "CPU_AND_NE": {
+      "load_s_first": 3.35,
+      "load_s_second": 3.328,
+      "max_abs_logit_diff_vs_torch": 0.004430666565895081,
+      "max_abs_prob_diff_vs_torch": 0.0011055469512939453,
+      "finite": true,
+      "calls": 841,
+      "ms_per_call_median": 17.795,
+      "ms_per_call_p90": 17.846,
+      "ms_per_pair": 1.112,
+      "pairs_per_s": 899.1
+     },
+     "CPU_ONLY": {
+      "load_s_first": 0.175,
+      "load_s_second": 0.177,
+      "max_abs_logit_diff_vs_torch": 0.013336181640625,
+      "max_abs_prob_diff_vs_torch": 0.003265559673309326,
+      "finite": true,
+      "calls": 473,
+      "ms_per_call_median": 31.748,
+      "ms_per_call_p90": 32.273,
+      "ms_per_pair": 1.984,
+      "pairs_per_s": 504.0
+     }
+    },
+    "busy": {
+     "CPU_AND_NE": {
+      "load_s_first": 4.819,
+      "load_s_second": 3.8,
+      "max_abs_logit_diff_vs_torch": 0.004430666565895081,
+      "max_abs_prob_diff_vs_torch": 0.0011055469512939453,
+      "finite": true,
+      "calls": 806,
+      "ms_per_call_median": 18.446,
+      "ms_per_call_p90": 19.739,
+      "ms_per_pair": 1.153,
+      "pairs_per_s": 867.4,
+      "gpu_busy_fraction": 1.0,
+      "gpu_alone_tok_s": 44.97,
+      "gpu_during_tok_s": null
+     },
+     "CPU_ONLY": {
+      "load_s_first": 0.194,
+      "load_s_second": 0.194,
+      "max_abs_logit_diff_vs_torch": 0.013336181640625,
+      "max_abs_prob_diff_vs_torch": 0.003265559673309326,
+      "finite": true,
+      "calls": 279,
+      "ms_per_call_median": 53.683,
+      "ms_per_call_p90": 61.142,
+      "ms_per_pair": 3.355,
+      "pairs_per_s": 298.0,
+      "gpu_busy_fraction": 1.0,
+      "gpu_alone_tok_s": 44.97,
+      "gpu_during_tok_s": null
+     }
+    }
+   }
+  }
+ },
+ "env_after": {
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t73%; charging; (no estimate) present: true"
+ }
+}
