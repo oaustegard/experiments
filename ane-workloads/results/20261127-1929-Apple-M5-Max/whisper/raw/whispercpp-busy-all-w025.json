@@ -1,0 +1,43 @@
+{
+	"systeminfo": "WHISPER : VITISAI = 0 | COREML = 1 | OPENVINO = 0 | MTL : EMBED_LIBRARY = 1 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | MATMUL_INT8 = 1 | DOTPROD = 1 | SME = 1 | SME2 = 1 | ACCELERATE = 1 | REPACK = 1 | ",
+	"model": {
+		"type": "large",
+		"multilingual": true,
+		"vocab": 51866,
+		"audio": {
+			"ctx": 1500,
+			"state": 1280,
+			"head": 20,
+			"layer": 32
+		},
+		"text": {
+			"ctx": 448,
+			"state": 1280,
+			"head": 20,
+			"layer": 4
+		},
+		"mels": 128,
+		"ftype": 1
+	},
+	"params": {
+		"model": "~/Documents/projects/personal/experiments/ane-workloads/work/whisper/ggml/ggml-large-v3-turbo.bin",
+		"language": "en",
+		"translate": false
+	},
+	"result": {
+		"language": "en"
+	},
+	"transcription": [
+		{
+			"timestamps": {
+				"from": "00:-16:-47,-300",
+				"to": "00:00:28,600"
+			},
+			"offsets": {
+				"from": -1007300,
+				"to": 28600
+			},
+			"text": " \"'It is an antipathy, an antipathy I cannot get over, dear Dorcas. \"'You may think it a madness, but don't blame me. \"'I have very few to love me now, \"'and I thought you might love me as I have begun to love you.' \"'And she threw her arms round her cousin's neck, \"'and brave Rachel at last burst into tears. \"'Dorcas, in her strange way, was moved. \"'I like you still, Rachel. I'm sure I'll always like you.'"
+		}
+	]
+}

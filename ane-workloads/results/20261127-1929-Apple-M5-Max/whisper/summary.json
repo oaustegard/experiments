@@ -1,0 +1,538 @@
+{
+ "env": {
+  "timestamp": "2026-11-27T19:29:52",
+  "platform": "Darwin arm64",
+  "chip": "Apple M5 Max",
+  "model": "Mac17,6",
+  "memsize_bytes": "137438953472",
+  "perf_cores": "6",
+  "macos": "27.2.1",
+  "macos_build": "26B131",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t71%; charging; (no estimate) present: true",
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "python": "3.12.16",
+  "low_power_mode": false,
+  "on_ac_power": true,
+  "powermode": "0"
+ },
+ "args": {
+  "only": "None",
+  "windows": "40",
+  "window": "29.0",
+  "whisperkit_cli": "None",
+  "whisperkit_units": "cpuAndNeuralEngine",
+  "whispercpp_units": "ne",
+  "cooldown": "20",
+  "force": "False",
+  "no_gpu_busy": "False",
+  "llama_bench": "None",
+  "gpu_model": "None",
+  "gpu_n": "512",
+  "gpu_reps": "6",
+  "gpu_settle": "20"
+ },
+ "engines": {
+  "whisperkit": {
+   "setup": {
+    "binary": "/opt/homebrew/bin/whisperkit-cli",
+    "version": "v1.1.1",
+    "model": "large-v3-v20240930_turbo",
+    "compute_units": "cpuAndNeuralEngine",
+    "models_existed_before": true
+   },
+   "first_invocation": {
+    "rc": 0,
+    "wall_s": 2.71,
+    "t0": 1795825792.9179652,
+    "t1": 1795825795.632303,
+    "load": {
+     "modelLoading": 0.809,
+     "encoderLoadTime": 0.46,
+     "decoderLoadTime": 0.064,
+     "prewarmLoadTime": 0,
+     "encoderSpecializationTime": 0,
+     "decoderSpecializationTime": 0,
+     "tokenizerLoadTime": 0.227
+    },
+    "stages_s": {
+     "encoding": 0.284,
+     "decodingLoop": 0.811,
+     "logmels": 0.024,
+     "audioLoading": 0.002
+    },
+    "engine_s": 0.812,
+    "load_s": 0.809
+   },
+   "idle": {
+    "audio_s": 982.0,
+    "windows": 40,
+    "wall_s": 32.7,
+    "engine_s": 31.002,
+    "load_s": 0.635,
+    "load": {
+     "modelLoading": 0.635,
+     "encoderLoadTime": 0.35,
+     "decoderLoadTime": 0.018,
+     "prewarmLoadTime": 0,
+     "encoderSpecializationTime": 0,
+     "decoderSpecializationTime": 0,
+     "tokenizerLoadTime": 0.231
+    },
+    "single_window_wall_s": 2.33,
+    "single_window_load_s": 0.646,
+    "error": null,
+    "rtf": 0.03157,
+    "speed_x_realtime": 31.7,
+    "rtf_wall_marginal": 0.03177,
+    "stages_s": {
+     "encoding": 10.949,
+     "decodingLoop": 30.977,
+     "logmels": 0.157,
+     "audioLoading": 0.16
+    },
+    "wer": 0.02001,
+    "substitutions": 41,
+    "deletions": 11,
+    "insertions": 3,
+    "ref_words": 2748,
+    "windows_missing": 0
+   },
+   "busy": {
+    "audio_s": 982.0,
+    "windows": 40,
+    "wall_s": 37.64,
+    "engine_s": 35.914,
+    "load_s": 0.71,
+    "load": {
+     "modelLoading": 0.71,
+     "encoderLoadTime": 0.401,
+     "decoderLoadTime": 0.021,
+     "prewarmLoadTime": 0,
+     "encoderSpecializationTime": 0,
+     "decoderSpecializationTime": 0,
+     "tokenizerLoadTime": 0.25
+    },
+    "single_window_wall_s": 3.22,
+    "single_window_load_s": 0.733,
+    "error": null,
+    "rtf": 0.03657,
+    "speed_x_realtime": 27.3,
+    "rtf_wall_marginal": 0.036,
+    "stages_s": {
+     "encoding": 12.318,
+     "decodingLoop": 35.882,
+     "logmels": 0.1,
+     "audioLoading": 0.24
+    },
+    "wer": 0.02001,
+    "substitutions": 41,
+    "deletions": 11,
+    "insertions": 3,
+    "ref_words": 2748,
+    "windows_missing": 0,
+    "gpu_busy_fraction": 1.0,
+    "gpu_alone_tok_s": 45.36,
+    "gpu_during_tok_s": null
+   }
+  },
+  "whispercpp": {
+   "setup": {
+    "commit": "79b11911d9d38c4be2fc7dc8b4efeff3324c090f",
+    "encoder_compute_units": "ne",
+    "models_existed_before": false,
+    "encoder_units_line": "config.computeUnits = MLComputeUnitsCPUAndNeuralEngine;"
+   },
+   "first_invocation": {
+    "rc": 0,
+    "wall_s": 12.96,
+    "t0": 1795826070.297804,
+    "t1": 1795826083.254008,
+    "coreml_loaded": true,
+    "coreml_in_build": true,
+    "timings_ms": {
+     "load": 341.2,
+     "mel": 6.86,
+     "sample": 14.34,
+     "encode": 5805.41,
+     "decode": 216.87,
+     "batchd": 14.63,
+     "prompt": 0.0,
+     "total": 8892.38
+    },
+    "engine_s": 6.058,
+    "load_s": 2.834,
+    "load": {
+     "ggml_load_s": 0.341
+    }
+   },
+   "idle": {
+    "audio_s": 982.0,
+    "windows": 40,
+    "wall_s": 17.19,
+    "engine_s": 16.503,
+    "load_s": 0.587,
+    "load": {
+     "ggml_load_s": 0.316
+    },
+    "single_window_wall_s": 1.58,
+    "single_window_load_s": 0.551,
+    "error": null,
+    "rtf": 0.01681,
+    "speed_x_realtime": 59.5,
+    "rtf_wall_marginal": 0.01633,
+    "timings_ms": {
+     "load": 315.95,
+     "mel": 249.84,
+     "sample": 648.65,
+     "encode": 5496.95,
+     "decode": 9734.61,
+     "batchd": 373.34,
+     "prompt": 0.0,
+     "total": 17090.63
+    },
+    "coreml_loaded": true,
+    "coreml_in_build": true,
+    "wer": 0.02001,
+    "substitutions": 42,
+    "deletions": 10,
+    "insertions": 3,
+    "ref_words": 2748,
+    "windows_missing": 0
+   },
+   "busy": {
+    "audio_s": 982.0,
+    "windows": 40,
+    "wall_s": 39.62,
+    "engine_s": 38.15,
+    "load_s": 1.256,
+    "load": {
+     "ggml_load_s": 0.684
+    },
+    "single_window_wall_s": 19.54,
+    "single_window_load_s": 1.269,
+    "error": null,
+    "rtf": 0.03885,
+    "speed_x_realtime": 25.7,
+    "rtf_wall_marginal": 0.021,
+    "timings_ms": {
+     "load": 683.9,
+     "mel": 609.53,
+     "sample": 1257.62,
+     "encode": 10268.87,
+     "decode": 25191.22,
+     "batchd": 822.87,
+     "prompt": 0.0,
+     "total": 39405.75
+    },
+    "coreml_loaded": true,
+    "coreml_in_build": true,
+    "wer": 0.02001,
+    "substitutions": 42,
+    "deletions": 10,
+    "insertions": 3,
+    "ref_words": 2748,
+    "windows_missing": 0,
+    "gpu_busy_fraction": 0.998,
+    "gpu_alone_tok_s": 45.36,
+    "gpu_during_tok_s": 39.09
+   }
+  },
+  "mlx": {
+   "setup": {
+    "model": "mlx-community/whisper-large-v3-turbo",
+    "mlx_whisper": "mlx-whisper==0.4.3",
+    "versions": "anyio==4.16.0\ncertifi==2026.11.20\ncharset-normalizer==3.5.3\nclick==8.5.1\nfilelock==4.3.2\nfsspec==2026.9.0\nh11==0.16.0\nhf-xet==1.8.0\nhttpcore2==2.16.2\nhttpx2==2.16.2\nhuggingface_hub==2.5.0\nidna==3.20\nJinja2==3.1.6\nllvmlite==0.50.0\nMarkupSafe==3.0.4\nmlx==0.32.5\nmlx-metal==0.32.5\nmlx-whisper==0.4.3\nmore-itertools==11.2.1\nmpmath==1.3.0\nnetworkx==3.7\nnumba==0.68.1\nnumpy==2.5.5\npackaging==26.4\nPyYAML==6.0.4\nregex==2026.11.25\nrequests==2.34.2\nscipy==1.18.1\nsetuptools==84.2.1\nsympy==1.14.0\ntiktoken==0.14.0\ntorch==2.15.0\ntqdm==4.70.1\ntruststore==0.10.5\ntyping_extensions==4.16.0\nurllib3==2.8.0"
+   },
+   "first_invocation": {
+    "rc": 0,
+    "wall_s": 8.07,
+    "t0": 1795826252.311511,
+    "t1": 1795826260.3811789,
+    "engine_s": 0.184,
+    "load_s": 2.629,
+    "load": {
+     "first_call_s": 2.813,
+     "same_window_warm_s": 0.184,
+     "import_s": 4.746
+    }
+   },
+   "idle": {
+    "audio_s": 982.0,
+    "windows": 40,
+    "wall_s": 16.47,
+    "engine_s": 15.173,
+    "load_s": 0.17,
+    "load": {
+     "first_call_s": 0.355,
+     "same_window_warm_s": 0.185,
+     "import_s": 0.733
+    },
+    "single_window_wall_s": 1.49,
+    "single_window_load_s": 0.171,
+    "error": null,
+    "rtf": 0.01545,
+    "speed_x_realtime": 64.7,
+    "rtf_wall_marginal": 0.01567,
+    "wer": 0.02584,
+    "substitutions": 46,
+    "deletions": 8,
+    "insertions": 17,
+    "ref_words": 2748,
+    "windows_missing": 0
+   },
+   "busy": {
+    "audio_s": 982.0,
+    "windows": 40,
+    "wall_s": 20.4,
+    "engine_s": 18.364,
+    "load_s": 0.23,
+    "load": {
+     "first_call_s": 0.539,
+     "same_window_warm_s": 0.309,
+     "import_s": 1.183
+    },
+    "single_window_wall_s": 2.5,
+    "single_window_load_s": 0.259,
+    "error": null,
+    "rtf": 0.0187,
+    "speed_x_realtime": 53.5,
+    "rtf_wall_marginal": 0.01872,
+    "wer": 0.02329,
+    "substitutions": 46,
+    "deletions": 8,
+    "insertions": 10,
+    "ref_words": 2748,
+    "windows_missing": 0,
+    "gpu_busy_fraction": 1.0,
+    "gpu_alone_tok_s": 45.36,
+    "gpu_during_tok_s": null
+   }
+  }
+ },
+ "audio": {
+  "windows": 40,
+  "seconds": 982.0,
+  "source": "https://www.openslr.org/resources/12/test-clean.tar.gz",
+  "window_ids": [
+   [
+    "1089-134686-0028",
+    "1089-134686-0029",
+    "1089-134686-0030",
+    "1089-134686-0031",
+    "1089-134686-0032"
+   ],
+   [
+    "1188-133604-0018",
+    "1188-133604-0019"
+   ],
+   [
+    "121-127105-0000",
+    "121-127105-0001",
+    "121-127105-0002"
+   ],
+   [
+    "1221-135767-0004",
+    "1221-135767-0005"
+   ],
+   [
+    "1284-1181-0004",
+    "1284-1181-0005",
+    "1284-1181-0006",
+    "1284-1181-0007"
+   ],
+   [
+    "1320-122617-0009",
+    "1320-122617-0010",
+    "1320-122617-0011"
+   ],
+   [
+    "1580-141083-0040",
+    "1580-141083-0041",
+    "1580-141083-0042",
+    "1580-141083-0043",
+    "1580-141083-0044",
+    "1580-141083-0045"
+   ],
+   [
+    "1995-1836-0005",
+    "1995-1836-0006",
+    "1995-1836-0007"
+   ],
+   [
+    "2094-142345-0033",
+    "2094-142345-0034",
+    "2094-142345-0035"
+   ],
+   [
+    "2300-131720-0026",
+    "2300-131720-0027"
+   ],
+   [
+    "237-134500-0000",
+    "237-134500-0001",
+    "237-134500-0002",
+    "237-134500-0003",
+    "237-134500-0004",
+    "237-134500-0005",
+    "237-134500-0006",
+    "237-134500-0007"
+   ],
+   [
+    "260-123288-0024",
+    "260-123288-0025"
+   ],
+   [
+    "2830-3980-0052",
+    "2830-3980-0053",
+    "2830-3980-0054",
+    "2830-3980-0055"
+   ],
+   [
+    "2961-961-0004",
+    "2961-961-0005",
+    "2961-961-0006",
+    "2961-961-0007"
+   ],
+   [
+    "3570-5695-0011",
+    "3570-5695-0012",
+    "3570-5695-0013"
+   ],
+   [
+    "3575-170457-0039",
+    "3575-170457-0040"
+   ],
+   [
+    "3729-6852-0034"
+   ],
+   [
+    "4077-13754-0006",
+    "4077-13754-0007"
+   ],
+   [
+    "4446-2275-0006",
+    "4446-2275-0007",
+    "4446-2275-0008",
+    "4446-2275-0009",
+    "4446-2275-0010",
+    "4446-2275-0011"
+   ],
+   [
+    "4507-16021-0042",
+    "4507-16021-0043",
+    "4507-16021-0044",
+    "4507-16021-0045",
+    "4507-16021-0046"
+   ],
+   [
+    "4970-29095-0027",
+    "4970-29095-0028",
+    "4970-29095-0029"
+   ],
+   [
+    "4992-41806-0007",
+    "4992-41806-0008",
+    "4992-41806-0009"
+   ],
+   [
+    "5105-28241-0016",
+    "5105-28241-0017"
+   ],
+   [
+    "5142-36377-0021"
+   ],
+   [
+    "5639-40744-0036",
+    "5639-40744-0037"
+   ],
+   [
+    "5683-32879-0018",
+    "5683-32879-0019",
+    "5683-32879-0020",
+    "5683-32879-0021",
+    "5683-32879-0022"
+   ],
+   [
+    "61-70970-0038",
+    "61-70970-0039",
+    "61-70970-0040"
+   ],
+   [
+    "672-122797-0071",
+    "672-122797-0072",
+    "672-122797-0073"
+   ],
+   [
+    "6829-68771-0028",
+    "6829-68771-0029",
+    "6829-68771-0030",
+    "6829-68771-0031",
+    "6829-68771-0032"
+   ],
+   [
+    "6930-81414-0013",
+    "6930-81414-0014",
+    "6930-81414-0015",
+    "6930-81414-0016",
+    "6930-81414-0017",
+    "6930-81414-0018"
+   ],
+   [
+    "7021-85628-0019",
+    "7021-85628-0020",
+    "7021-85628-0021",
+    "7021-85628-0022"
+   ],
+   [
+    "7127-75947-0027",
+    "7127-75947-0028",
+    "7127-75947-0029",
+    "7127-75947-0030",
+    "7127-75947-0031"
+   ],
+   [
+    "7176-92135-0025",
+    "7176-92135-0026",
+    "7176-92135-0027",
+    "7176-92135-0028",
+    "7176-92135-0029"
+   ],
+   [
+    "7729-102255-0028",
+    "7729-102255-0029",
+    "7729-102255-0030"
+   ],
+   [
+    "8224-274381-0014"
+   ],
+   [
+    "8230-279154-0025"
+   ],
+   [
+    "8455-210777-0033",
+    "8455-210777-0034",
+    "8455-210777-0035"
+   ],
+   [
+    "8463-294825-0009",
+    "8463-294825-0010",
+    "8463-294825-0011"
+   ],
+   [
+    "8555-284449-0002",
+    "8555-284449-0003"
+   ],
+   [
+    "908-157963-0026",
+    "908-157963-0027",
+    "908-157963-0028",
+    "908-157963-0029",
+    "908-157963-0030"
+   ]
+  ]
+ },
+ "env_after": {
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t74%; charging; (no estimate) present: true"
+ }
+}
