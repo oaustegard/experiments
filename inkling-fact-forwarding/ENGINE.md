@@ -218,7 +218,14 @@ B. ~~Solo vs lane bit-identity~~ **Done: not identical** (section 7). Still to c
    `inkling run` (probably not needed).
 C. ~~Prefill and wall-clock on the real shape~~ **Done** (section 8). Not run: 64 lanes at 5K context, and the
    `--shared` path with a 20K shared prefix for `vote`.
-D. **Newline-safe prompt input and per-sequence stats**: the small patch described in sections 2 and 4.
+D. ~~Newline-safe prompt input and per-sequence stats~~ **Done** (2026-11-28): `inkling batch-json` on upstream `4be5bed`
+   takes escaped one-line prompts (`--prompts-esc`), hard-disables thinking (`--think-off`), and writes per-prompt JSONL with
+   prompt and generation token counts, a finish reason (`stop | length | context`), reasoning and content, plus a summary
+   line. It also covers `--shared` for N samples of one prompt. The patch (`erisinky-batch-json.patch`, 203 lines, applies to
+   the pristine `4be5bed` `src/main.rs`) and an MCP server on top of it are in [`tooling/`](tooling/README.md). Checked against plain `batch`:
+   prompt-token counts match exactly (2,506 for the eight-prompt set), generated-token counts match for `-b 8`, and an
+   escaped multi-line prompt tokenises the same as `-p` with real newlines. Per-prompt wall-clock is still not reported
+   (only batch totals), so per-task time has to come from running a task's lanes in one call.
 E. **Greedy-loop pilot** (section 5) before fixing the decoding setting.
 F. **Tokenizer agreement** if llama-server is used to count prompt tokens.
 

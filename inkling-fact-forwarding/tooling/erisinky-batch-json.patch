@@ -1,0 +1,203 @@
+--- a/src/main.rs	2026-11-27 22:28:30
++++ b/src/main.rs	2026-11-27 22:28:30
+@@ -24,6 +24,7 @@
+   persona-serve     launch single-stream Dual-Persona (Eris <-> Ziz) Option B LoRA Chat WebUI
+   persona-check     verify Option B Dual-Persona prefill/decode parity and sample speed
+   batch             high-throughput parallel batch generation (-b N, -p TEXT or --prompts FILE)
++  batch-json        LOCAL ADDITION: batch with newline-safe prompts and a JSONL result file (--prompts-esc FILE --out FILE)
+   bench             greedy prefill + decode benchmark
+   bench-batch       parallel batched decode throughput sweep (-b N or -b 1,8,32,64,128,256)
+   check --ref P     compare logits against a llama.cpp reference dump (tools/ref_logits)
+@@ -66,6 +67,7 @@
+     interrupt: String, interrupt_at: u32, peer_kv: String, temp_set: bool,
+     eris: String, ziz: String, webui: String, contexts: String, policy: String, subtest: String,
+     kv_bits: u32, topk_pages: usize,
++    prompts_esc: String, think_off: bool, out_path: String,
+ }
+ 
+ fn parse() -> (String, Opts) {
+@@ -82,7 +84,8 @@
+                        ziz: "/Users/eris/Documents/Programming/Projects/ErisLLM/inkling2/runs/zizzyinky/run1/adapter_best.ilora".into(),
+                        webui: "/Users/eris/Documents/Programming/Projects/ErisLLM/inkling2/webui/index.html".into(),
+                        contexts: "/Users/eris/Documents/Programming/Projects/ErisLLM/data/dataset/contexts.json".into(),
+-                       policy: "sweep".into(), subtest: "all".into(), kv_bits: 4, topk_pages: 64 };
++                       policy: "sweep".into(), subtest: "all".into(), kv_bits: 4, topk_pages: 64,
++                       prompts_esc: String::new(), think_off: false, out_path: String::new() };
+     while let Some(a) = args.next() {
+         let mut v = || args.next().unwrap_or_else(|| { eprintln!("missing value for {a}"); std::process::exit(2) });
+         match a.as_str() {
+@@ -106,6 +109,9 @@
+             "-p" | "--prompt" => o.prompt = v(),
+             "-f" | "--file" => o.prompt = std::fs::read_to_string(v()).expect("read prompt file"),
+             "--prompts" => o.prompts_file = v(),
++            "--prompts-esc" => o.prompts_esc = v(),   // LOCAL ADDITION (batch-json): one escaped prompt per line
++            "--think-off" => o.think_off = true,      // LOCAL ADDITION: hard-disable thinking (batch-json)
++            "--out" => o.out_path = v(),              // LOCAL ADDITION: JSONL result file (batch-json)
+             "-b" | "--batch" => o.batch = v(),
+             "--shared" => o.shared = true,
+             "--independent" => o.independent = true,
+@@ -685,6 +691,7 @@
+         "persona-check" => persona::run_persona_check(&o.model, &o.eris, &o.ziz, o.ctx),
+         "bench" => bench(&o),
+         "batch" => run_batch(&o),
++        "batch-json" => run_batch_json(&o),
+         "bench-batch" => bench_batch(&o),
+         "check-batch" => check_batch(&o),
+         "prof-batch" => prof_batch(&o),
+@@ -779,6 +786,156 @@
+     );
+ }
+ 
++// ----------------------------------------------------------------------------- LOCAL ADDITION: batch-json
++// `inkling batch-json --prompts-esc FILE --out FILE [-b N] [-n N] [--temp T --top-p P --top-k K --seed S]
++//                     [--system TEXT] [--effort E] [--think-off] [--shared] [-c CTX] [--max-mem GB]`
++// Input: one prompt per line; inside a prompt `\n`, `\r`, `\t` and `\\` stand for newline, CR, tab and backslash.
++// With --shared the file must hold exactly one prompt and -b lanes sample it (one prefill, distinct RNG streams).
++// Output (JSONL, one object per prompt, plus a last {"summary":...} line): per-sequence prompt/gen tokens, finish
++// reason (stop | length | context), reasoning and content text. A prompt too long for -c gets an error object instead
++// of aborting the batch. User text is tokenised WITHOUT control-token parsing; only the template pieces are parsed.
++
++fn json_str(b: &[u8]) -> String {
++    let s = String::from_utf8_lossy(b);
++    let mut out = String::with_capacity(s.len() + 2);
++    out.push('"');
++    for c in s.chars() {
++        match c {
++            '"' => out.push_str("\\\""),
++            '\\' => out.push_str("\\\\"),
++            '\n' => out.push_str("\\n"),
++            '\r' => out.push_str("\\r"),
++            '\t' => out.push_str("\\t"),
++            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
++            c => out.push(c),
++        }
++    }
++    out.push('"');
++    out
++}
++
++fn unescape_prompt(l: &str) -> String {
++    let mut out = String::with_capacity(l.len());
++    let mut it = l.chars();
++    while let Some(c) = it.next() {
++        if c != '\\' { out.push(c); continue; }
++        match it.next() {
++            Some('n') => out.push('\n'),
++            Some('r') => out.push('\r'),
++            Some('t') => out.push('\t'),
++            Some('\\') => out.push('\\'),
++            Some(x) => { out.push('\\'); out.push(x); }
++            None => out.push('\\'),
++        }
++    }
++    out
++}
++
++fn push_msg(tk: &Tokenizer, toks: &mut Vec<u32>, role: &str, text: &str) {
++    toks.extend(tk.encode(&format!("<|message_{role}|><|content_text|>"), true));
++    toks.extend(tk.encode(text, false));
++    toks.extend(tk.encode("<|end_message|>", true));
++}
++
++fn run_batch_json(o: &Opts) {
++    let t_wall = std::time::Instant::now();
++    let raw = std::fs::read_to_string(&o.prompts_esc).unwrap_or_else(|e| { eprintln!("error: read {}: {e}", o.prompts_esc); std::process::exit(2) });
++    let texts: Vec<String> = raw.lines().map(unescape_prompt).collect();
++    if texts.is_empty() { eprintln!("error: --prompts-esc file has no prompts"); std::process::exit(2); }
++    let mut out: Box<dyn Write> = if o.out_path.is_empty() { Box::new(std::io::stdout()) }
++        else { Box::new(std::fs::File::create(&o.out_path).unwrap_or_else(|e| { eprintln!("error: create {}: {e}", o.out_path); std::process::exit(2) })) };
++    let fatal = |out: &mut Box<dyn Write>, msg: &str| -> ! {
++        let _ = writeln!(out, "{{\"fatal\":{}}}", json_str(msg.as_bytes()));
++        let _ = out.flush();
++        eprintln!("error: {msg}");
++        std::process::exit(1)
++    };
++
++    let eng = Engine::load(&o.model, o.ctx);
++    let tk = Tokenizer::load(&eng.g);
++    let n = if o.n_set { o.n } else { 256 };
++    let b: usize = o.batch.split(',').next().unwrap().parse().expect("batch size");
++    let max_mem = BatchEngine::safe_mem_limit(&eng, o.max_mem);
++    let sample = if o.temp <= 0.0 { None } else { Some(SampleCfg { temp: o.temp, top_k: o.top_k, top_p: o.top_p, seed: o.seed }) };
++    let need_slice = sample.is_some();
++
++    let build = |user: &str| -> Vec<u32> {
++        let mut t = Vec::new();
++        if !o.system.is_empty() { push_msg(&tk, &mut t, "system", &o.system); }
++        push_msg(&tk, &mut t, "system", &format!("Thinking effort level: {}", effort_str(&o.effort)));
++        push_msg(&tk, &mut t, "user", user);
++        if o.think_off { t.extend(tk.encode("<|message_model|><|content_text|>", true)); }
++        t
++    };
++
++    // (original index, prompt tokens, generated tokens)
++    let mut rows: Vec<(usize, usize, Vec<u32>)> = Vec::new();
++    let mut too_long: Vec<(usize, usize)> = Vec::new();
++    let stats;
++    if o.shared {
++        if texts.len() != 1 { fatal(&mut out, "--shared needs exactly one prompt in --prompts-esc"); }
++        let toks = build(&texts[0]);
++        if toks.len() + 8 >= o.ctx { fatal(&mut out, &format!("prompt is {} tokens but -c is {}", toks.len(), o.ctx)); }
++        let init_full = b * n.div_ceil(batch::KV_BLK);
++        let init_swa = b * n.div_ceil(batch::KV_BLK).min(batch::SWA_RING_BLKS);
++        let mut be = BatchEngine::try_new(&eng, b, o.ctx, init_swa, init_full, need_slice, max_mem).unwrap_or_else(|e| fatal(&mut out, &e.to_string()));
++        let (res, st) = be.generate_shared(&toks, b, n, sample, tk.eos, true);
++        for (i, seq) in res.into_iter().enumerate() { rows.push((i, toks.len(), seq)); }
++        stats = st;
++    } else {
++        let mut idx: Vec<usize> = Vec::new();
++        let mut prompts: Vec<Vec<u32>> = Vec::new();
++        for (i, t) in texts.iter().enumerate() {
++            let toks = build(t);
++            if toks.len() + 8 >= o.ctx { too_long.push((i, toks.len())); } else { idx.push(i); prompts.push(toks); }
++        }
++        if prompts.is_empty() {
++            stats = batch::BatchStats::default();
++        } else {
++            let max_p = prompts.iter().map(|p| p.len()).max().unwrap_or(64);
++            let lanes = b.min(prompts.len());
++            let init_full = lanes * (max_p + n).div_ceil(batch::KV_BLK);
++            let init_swa = lanes * (max_p + n).div_ceil(batch::KV_BLK).min(batch::SWA_RING_BLKS);
++            let mut be = BatchEngine::try_new(&eng, lanes, o.ctx, init_swa, init_full, need_slice, max_mem).unwrap_or_else(|e| fatal(&mut out, &e.to_string()));
++            let (res, st) = be.generate_independent(&prompts, n, sample, tk.eos, true);
++            for (k, seq) in res.into_iter().enumerate() { rows.push((idx[k], prompts[k].len(), seq)); }
++            stats = st;
++        }
++    }
++
++    for (i, ptoks) in &too_long {
++        let _ = writeln!(out, "{{\"i\":{i},\"error\":\"prompt_too_long\",\"prompt_tokens\":{ptoks},\"ctx\":{}}}", o.ctx);
++    }
++    for (i, ptoks, seq) in &rows {
++        // 0 = outside a content block, 1 = reasoning, 2 = answer (0 and 2 both count as answer), as in serve.rs
++        let mut mode = 0u8;
++        let (mut reasoning, mut content): (Vec<u8>, Vec<u8>) = (Vec::new(), Vec::new());
++        let (mut rt, mut ct, mut hit_eos) = (0usize, 0usize, false);
++        for &t in seq {
++            if t == tk.eos { hit_eos = true; break; }
++            if tk.is_special(t) {
++                match tk.decode_bytes(t).as_slice() {
++                    b"<|content_thinking|>" => mode = 1,
++                    b"<|content_text|>" => mode = 2,
++                    b"<|end_message|>" => mode = 0,
++                    _ => {}
++                }
++            } else {
++                let bytes = tk.decode_bytes(t);
++                if mode == 1 { reasoning.extend_from_slice(&bytes); rt += 1; } else { content.extend_from_slice(&bytes); ct += 1; }
++            }
++        }
++        let finish = if hit_eos { "stop" } else if seq.len() >= n { "length" } else { "context" };
++        let _ = writeln!(out, "{{\"i\":{i},\"prompt_tokens\":{ptoks},\"gen_tokens\":{},\"reasoning_tokens\":{rt},\"content_tokens\":{ct},\"finish\":\"{finish}\",\"reasoning\":{},\"content\":{}}}",
++                         seq.len(), json_str(&reasoning), json_str(&content));
++    }
++    let _ = writeln!(out, "{{\"summary\":{{\"seqs\":{},\"errors\":{},\"peak_batch\":{},\"prompt_tokens\":{},\"prompt_ms\":{:.1},\"gen_tokens\":{},\"gen_ms\":{:.1},\"decode_steps\":{},\"kv_mib\":{:.0},\"wall_ms\":{:.1},\"ctx\":{},\"max_mem_gib\":{:.1}}}}}",
++                     rows.len(), too_long.len(), stats.peak_batch, stats.prompt_tokens, stats.prompt_time.as_secs_f64() * 1e3,
++                     stats.gen_tokens, stats.gen_time.as_secs_f64() * 1e3, stats.decode_steps, stats.kv_bytes as f64 / 1048576.0,
++                     t_wall.elapsed().as_secs_f64() * 1e3, o.ctx, max_mem as f64 / (1u64 << 30) as f64);
++    let _ = out.flush();
++}
++
+ fn bench_batch(o: &Opts) {
+     let eng = Engine::load(&o.model, o.ctx);
+     let tk = Tokenizer::load(&eng.g);
