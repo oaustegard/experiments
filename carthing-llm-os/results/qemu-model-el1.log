@@ -1,0 +1,24 @@
+
+carthing-llm-os on qemu-virt: booted at EL1, running at EL1, timer 62500000 Hz
+MMU and caches on (SCTLR_EL1=c5183d)
+PSCI 1.1 via hvc
+cores online: 4 of 4
+  [pass] all cores started through PSCI CPU_ON
+self-test:
+  NEON vs scalar dot, 5 lengths 32..4096: worst rel err 3.49e-07
+  [pass] NEON Q4_0 x Q8_0 dot matches scalar reference
+model:
+  Qwen3: 28 layers, dim 1024, 16/8 heads x 128, ffn 3072, vocab 151936, context 512, blob 321 MB at 0x48200000
+
+The capital of France is Paris. The capital of Germany is Berlin. The capital of Italy is Rome. The capital of Japan is Tokyo.
+
+  prefill 0.572 s/token, decode 0.542 s/token (1.85 tok/s) on 4 cores
+  greedy tokens matching the PyTorch reference: 16 of 16 (it splits at a near-tie; see README)
+  greedy tokens matching the host build (scalar dot products, same rounding otherwise): 14 of 16
+  teacher-forced over 28 positions: top-1 same as host build at 27, worst top-8 logit difference 2.98e-01
+  [pass] kernel logits match the host build within the rounding noise floor (< 1.0)
+memory bandwidth:
+  read 1 core : 2.71 GB/s -> decode ceiling ~8.1 tok/s for Qwen3-0.6B Q4_0
+  read 2 cores: 5.09 GB/s -> decode ceiling ~15.2 tok/s for Qwen3-0.6B Q4_0
+  read 4 cores: 10.11 GB/s -> decode ceiling ~30.2 tok/s for Qwen3-0.6B Q4_0
+RESULT: PASS

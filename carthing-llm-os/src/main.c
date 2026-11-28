@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "q4.h"
+#include "qwen3.h"
 #include <arm_neon.h>
 
 /* Test-vector blob written by tools/gen_testvec.py and placed at BLOB_ADDR
@@ -125,6 +126,94 @@ static void test_vectors(void) {
     }
 }
 
+/* Qwen3 model mode: the blob at BLOB_ADDR is a model from tools/convert.py.
+ * Buffers are static, sized for Qwen3-0.6B at a 512-token context: the KV
+ * cache (f16) is 2 x 28 x 512 x 1024 x 2 bytes = 58.7 MB of bss. */
+#define QW_MAX_LAYER 28
+#define QW_MAX_DIM   1024
+#define QW_MAX_QDIM  2048
+#define QW_MAX_KV    1024
+#define QW_MAX_FFN   3072
+#define QW_MAX_CTX   512
+#define QW_MAX_VOCAB 151936
+static float m_x[QW_MAX_DIM], m_xn[QW_MAX_DIM], m_q[QW_MAX_QDIM], m_k[QW_MAX_KV], m_v[QW_MAX_KV],
+             m_att[QW_MAX_QDIM], m_g[QW_MAX_FFN], m_u[QW_MAX_FFN], m_scores[QW_MAX_CTX], m_logits[QW_MAX_VOCAB];
+static block_q8_0 m_xq[QW_MAX_FFN / QK];
+static qw_kv m_kc[(size_t)QW_MAX_LAYER * QW_MAX_CTX * QW_MAX_KV], m_vc[(size_t)QW_MAX_LAYER * QW_MAX_CTX * QW_MAX_KV];
+
+void qw_matvec(const block_q4_0 *w, const block_q8_0 *xq, const float *xf, float *y, int rows, int cols) {
+    matvec_args m = { w, xq, y, rows, cols, 1 };
+    smp_run(matvec_q4_0_job, &m, NCORES);
+}
+
+static void put_token(const qw_header *h, int id) {
+    int n;
+    const uint8_t *b = qw_token(h, id, &n);
+    for (int i = 0; i < n; i++) uart_putc((char)b[i]);
+}
+
+static void run_model(const qw_header *h) {
+    const char *err = qw_check(h);
+    if (err) { kprintf("  model blob: %s\n", err); check(0, "model blob is usable"); return; }
+    if (h->n_layer > QW_MAX_LAYER || h->dim > QW_MAX_DIM || h->n_head * h->head_dim > QW_MAX_QDIM ||
+        h->n_kv * h->head_dim > QW_MAX_KV || h->ffn > QW_MAX_FFN || h->max_ctx > QW_MAX_CTX ||
+        h->vocab > QW_MAX_VOCAB || h->n_expect > 64) {
+        check(0, "model fits the kernel's static buffers");
+        return;
+    }
+    kprintf("  Qwen3: %u layers, dim %u, %u/%u heads x %u, ffn %u, vocab %u, context %u, blob %u MB at %p\n",
+            h->n_layer, h->dim, h->n_head, h->n_kv, h->head_dim, h->ffn, h->vocab, h->max_ctx,
+            h->total >> 20, (void *)h);
+    qw_state s = { m_x, m_xn, m_q, m_k, m_v, m_att, m_g, m_u, m_scores, m_logits, m_xq, m_kc, m_vc };
+    const uint32_t *pr = qw_prompt(h), *ex = qw_expect(h), *dev = qw_expect_dev(h);
+    int have_dev = 0;
+    for (uint32_t i = 0; i < h->n_expect; i++) have_dev |= dev[i] != 0;
+
+    kprintf("\n");
+    uint64_t t0 = ticks();
+    for (uint32_t i = 0; i < h->n_prompt; i++) { put_token(h, (int)pr[i]); qw_forward(h, &s, (int)pr[i], (int)i); }
+    uint64_t t1 = ticks();
+    int match_dev = 0, match_ref = 0, pos = (int)h->n_prompt;
+    for (uint32_t i = 0; i < h->n_expect; i++) {
+        int t = qw_argmax(s.logits, (int)h->vocab);
+        match_dev += t == (int)dev[i];
+        match_ref += t == (int)ex[i];
+        put_token(h, t);
+        if (i + 1 < h->n_expect) qw_forward(h, &s, t, pos++);
+    }
+    uint64_t t2 = ticks();
+    double pf = seconds(t1 - t0) / h->n_prompt, dc = seconds(t2 - t1) / (h->n_expect - 1);
+    kprintf("\n\n  prefill %.3f s/token, decode %.3f s/token (%.2f tok/s) on %d cores\n", pf, dc, 1.0 / dc, smp_cores());
+    kprintf("  greedy tokens matching the PyTorch reference: %d of %u (it splits at a near-tie; see README)\n",
+            match_ref, h->n_expect);
+    if (!have_dev) { kprintf("  no host_run data in the blob: run `make check-host` first\n"); check(0, "blob has host_run check data"); return; }
+    kprintf("  greedy tokens matching the host build (scalar dot products, same rounding otherwise): %d of %u\n",
+            match_dev, h->n_expect);
+
+    /* Teacher-forced logit check: feed prompt + PyTorch continuation and compare the
+     * logits of host_run's top-k tokens at every position. Free-running tokens can
+     * differ at a near-tie. The tolerance is the measured noise floor of this
+     * arithmetic: two host builds differing only in FMA contraction disagree by up
+     * to 0.57 logits (results/host_check.json), because each Q8_0 re-quantization
+     * can turn a 1-ulp difference into a rounding flip. A real bug (RoPE, head
+     * mapping, norms) moves logits by whole units and garbles the text. */
+    const qw_check_entry *ce = qw_checks(h);
+    int npos = (int)(h->n_prompt + h->n_expect), k = (int)h->check_k, top1 = 0;
+    float worst = 0;
+    for (int p = 0; p < npos; p++) {
+        int t = p < (int)h->n_prompt ? (int)pr[p] : (int)ex[p - h->n_prompt];
+        qw_forward(h, &s, t, p);
+        top1 += qw_argmax(s.logits, (int)h->vocab) == (int)ce[p * k].id;
+        for (int j = 0; j < k; j++) {
+            float d = __builtin_fabsf(s.logits[ce[p * k + j].id] - ce[p * k + j].logit);
+            if (d > worst) worst = d;
+        }
+    }
+    kprintf("  teacher-forced over %d positions: top-1 same as host build at %d, worst top-%d logit difference %.2e\n",
+            npos, top1, k, (double)worst);
+    check(worst < 1.0f && top1 >= npos - 2, "kernel logits match the host build within the rounding noise floor (< 1.0)");
+}
+
 /* Streaming read bandwidth: the ceiling on decode speed, since every token
  * reads every weight once. */
 typedef struct { const uint8_t *buf; size_t bytes; uint64_t sink[NCORES]; } bw_args;
@@ -172,8 +261,13 @@ void kmain(void) {
 
     kprintf("self-test:\n");
     selftest_random();
-    kprintf("test vectors:\n");
-    test_vectors();
+    if (qw_check((const void *)BLOB_ADDR) == 0 || memcmp((const void *)BLOB_ADDR, QW_MAGIC, 8) == 0) {
+        kprintf("model:\n");
+        run_model((const qw_header *)BLOB_ADDR);
+    } else {
+        kprintf("test vectors:\n");
+        test_vectors();
+    }
     kprintf("memory bandwidth:\n");
     bandwidth();
 

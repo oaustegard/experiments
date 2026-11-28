@@ -1,4 +1,3 @@
-
 carthing-llm-os on qemu-virt: booted at EL2, running at EL1, timer 62500000 Hz
 MMU and caches on (SCTLR_EL1=30d01805)
 PSCI 1.1 via smc
@@ -20,11 +19,11 @@ test vectors:
   matvec NEON, all cores  worst rel err vs reference 6.51e-05
   [pass] matvec matches llama.cpp-formula reference
   Q4_0/Q8_0 vs fp32 matvec: relative RMS error 0.0847 (quantization, not a bug)
-  time scalar, 1 core   3.832 ms per matvec, 150.3 MB/s of weights
-  time NEON, 1 core     2.972 ms per matvec, 193.8 MB/s of weights
-  time NEON, all cores  1.097 ms per matvec, 524.9 MB/s of weights
+  time scalar, 1 core   3.370 ms per matvec, 170.9 MB/s of weights
+  time NEON, 1 core     2.804 ms per matvec, 205.4 MB/s of weights
+  time NEON, all cores  0.893 ms per matvec, 644.8 MB/s of weights
 memory bandwidth:
-  read 1 core : 4.61 GB/s -> decode ceiling ~13.8 tok/s for Qwen3-0.6B Q4_0
-  read 2 cores: 8.57 GB/s -> decode ceiling ~25.6 tok/s for Qwen3-0.6B Q4_0
-  read 4 cores: 12.94 GB/s -> decode ceiling ~38.6 tok/s for Qwen3-0.6B Q4_0
+  read 1 core : 4.37 GB/s -> decode ceiling ~13.1 tok/s for Qwen3-0.6B Q4_0
+  read 2 cores: 8.61 GB/s -> decode ceiling ~25.7 tok/s for Qwen3-0.6B Q4_0
+  read 4 cores: 14.50 GB/s -> decode ceiling ~43.3 tok/s for Qwen3-0.6B Q4_0
 RESULT: PASS

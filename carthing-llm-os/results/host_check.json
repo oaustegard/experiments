@@ -1,0 +1,39 @@
+{
+  "generation_sequence": {
+    "positions": 28,
+    "top1_agreement": 0.9642857142857143,
+    "max_abs_logit_diff": 1.0363881587982178,
+    "rms_logit_diff": 0.09705234108048702,
+    "min_cosine": 0.9912927746772766,
+    "mean_kl_ref_to_c": 0.0014699373859912157,
+    "max_kl_ref_to_c": 0.019762247800827026
+  },
+  "eval_paragraph": {
+    "positions": 115,
+    "top1_agreement": 0.9565217391304348,
+    "max_abs_logit_diff": 1.3511152267456055,
+    "rms_logit_diff": 0.113613890592088,
+    "min_cosine": 0.9854281544685364,
+    "mean_kl_ref_to_c": 0.0033909508492797613,
+    "max_kl_ref_to_c": 0.04554058611392975
+  },
+  "eval_paragraph_c_vs_bf16_top1": 0.7043478260869566,
+  "exact_build_eval_paragraph": {
+    "positions": 115,
+    "top1_agreement": 1.0,
+    "max_abs_logit_diff": 0.0001361370086669922,
+    "rms_logit_diff": 1.1615998429059984e-05,
+    "min_cosine": 0.9999998211860657,
+    "mean_kl_ref_to_c": 1.2878054178599996e-08,
+    "max_kl_ref_to_c": 3.063789222323976e-07
+  },
+  "noise_floor_fma_off_vs_fast_generation_sequence": {
+    "positions": 28,
+    "top1_agreement": 1.0,
+    "max_abs_logit_diff": 0.5702552795410156,
+    "rms_logit_diff": 0.08401460799351324,
+    "min_cosine": 0.9992768168449402,
+    "mean_kl_ref_to_c": 0.0007486509857699275,
+    "max_kl_ref_to_c": 0.0076868473552167416
+  }
+}

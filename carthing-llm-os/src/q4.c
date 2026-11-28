@@ -1,5 +1,7 @@
 #include "q4.h"
+#if defined(__aarch64__)
 #include <arm_neon.h>
+#endif
 
 static inline float absf(float v) { return __builtin_fabsf(v); }
 
@@ -48,6 +50,17 @@ float vec_dot_q4_0_q8_0_ref(int n, const block_q4_0 *x, const block_q8_0 *y) {
     return sum;
 }
 
+void dequantize_row_q4_0(const block_q4_0 *x, float *y, int n) {
+    for (int i = 0; i < n / QK; i++) {
+        float d = f16_to_f32(x[i].d);
+        for (int j = 0; j < QK / 2; j++) {
+            y[i * QK + j] = (float)((x[i].qs[j] & 0x0f) - 8) * d;
+            y[i * QK + j + QK / 2] = (float)((x[i].qs[j] >> 4) - 8) * d;
+        }
+    }
+}
+
+#if defined(__aarch64__)
 /* Cortex-A53 is ARMv8.0: no sdot. Widen with smull, pairwise-add to int32,
  * then scale each block's integer sum by d_x * d_y in float. Two blocks per
  * iteration to keep two accumulators in flight. */
@@ -87,6 +100,8 @@ float vec_dot_q4_0_q8_0_neon(int n, const block_q4_0 *x, const block_q8_0 *y) {
     return sum;
 }
 
+#endif
+
 void matvec_q4_0_job(int core, int ncores, void *arg) {
     matvec_args *a = arg;
     int per = (a->rows + ncores - 1) / ncores;
@@ -94,6 +109,10 @@ void matvec_q4_0_job(int core, int ncores, void *arg) {
     if (r1 > a->rows) r1 = a->rows;
     int nb = a->cols / QK;
     for (int r = r0; r < r1; r++)
+#if defined(__aarch64__)
         a->y[r] = a->neon ? vec_dot_q4_0_q8_0_neon(a->cols, a->w + (size_t)r * nb, a->x)
                           : vec_dot_q4_0_q8_0_ref(a->cols, a->w + (size_t)r * nb, a->x);
+#else
+        a->y[r] = vec_dot_q4_0_q8_0_ref(a->cols, a->w + (size_t)r * nb, a->x);
+#endif
 }
