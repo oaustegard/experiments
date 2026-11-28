@@ -6,7 +6,7 @@ programs reach only through those frameworks), and measures it twice: with the G
 and while the GPU decodes with a 27B language model. The question is which useful work the
 Neural Engine can do beside a busy GPU, how well, and at what cost to either side.
 
-**Status: written, not yet run.** The scripts need a Mac (Oskar's M5 Max, 128 GB, macOS 26).
+**Status: run once on an M5 Max (2026-11-27); results in [`RESULTS.md`](RESULTS.md).** The scripts need a Mac (Oskar's M5 Max, 128 GB, macOS 26).
 They were written in a Linux container, where the parts that do not need a Mac were run;
 "What was checked" below says which.
 
