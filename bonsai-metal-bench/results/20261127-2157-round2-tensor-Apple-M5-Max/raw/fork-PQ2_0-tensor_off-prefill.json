@@ -1,0 +1,25 @@
+{
+ "cmd": [
+  "~/Documents/projects/personal/experiments/bonsai-metal-bench/work/llama.cpp/build/bin/llama-bench",
+  "-m",
+  "~/Documents/projects/personal/experiments/bonsai-metal-bench/work/gguf/Ternary-Bonsai-2.5-27B-PQ2_0.gguf",
+  "-ngl",
+  "99",
+  "-fa",
+  "1",
+  "-o",
+  "json",
+  "-p",
+  "512,2048,8192",
+  "-n",
+  "0",
+  "-r",
+  "3"
+ ],
+ "env": {
+  "GGML_METAL_TENSOR_DISABLE": "1"
+ },
+ "rc": 0,
+ "wall_s": 178.8,
+ "stdout": "[\n  {\n    \"build_commit\": \"43f31f4\",\n    \"build_number\": 1,\n    \"cpu_info\": \"Accelerate, Apple M5 Max\",\n    \"gpu_info\": \"Apple M5 Max\",\n    \"backends\": \"MTL,BLAS\",\n    \"model_filename\": \"~/Documents/projects/personal/experiments/bonsai-metal-bench/work/gguf/Ternary-Bonsai-2.5-27B-PQ2_0.gguf\",\n    \"model_type\": \"qwen35 27B PQ2_0 - 2.13 bpw (group 128)\",\n    \"model_size\": 7242233856,\n    \"model_n_params\": 26895998464,\n    \"n_batch\": 2048,\n    \"n_ubatch\": 512,\n    \"n_threads\": 6,\n    \"cpu_mask\": \"0x0\",\n    \"cpu_strict\": false,\n    \"poll\": 50,\n    \"type_k\": \"f16\",\n    \"type_v\": \"f16\",\n    \"n_gpu_layers\": 99,\n    \"n_cpu_moe\": 0,\n    \"split_mode\": \"layer\",\n    \"main_gpu\": 0,\n    \"no_kv_offload\": false,\n    \"flash_attn\": 1,\n    \"devices\": \"auto\",\n    \"tensor_split\": \"0.00\",\n    \"tensor_buft_overrides\": \"none\",\n    \"load_mode\": \"auto\",\n    \"lazy_mode\": \"auto\",\n    \"embeddings\": false,\n    \"no_op_offload\": 0,\n    \"no_host\": false,\n    \"repack\": true,\n    \"fit_target\": 0,\n    \"fit_min_ctx\": 0,\n    \"n_prompt\": 512,\n    \"n_gen\": 0,\n    \"n_depth\": 0,\n    \"test_time\": \"2026-11-28T03:17:28Z\",\n    \"avg_ns\": 2115988847,\n    \"stddev_ns\": 54266730,\n    \"avg_ts\": 242.071996,\n    \"stddev_ts\": 6.126639,\n    \"samples_ns\": [ 2177966125, 2092999500, 2077000917 ],\n    \"samples_ts\": [ 235.082, 244.625, 246.509 ]\n  },\n  {\n    \"build_commit\": \"43f31f4\",\n    \"build_number\": 1,\n    \"cpu_info\": \"Accelerate, Apple M5 Max\",\n    \"gpu_info\": \"Apple M5 Max\",\n    \"backends\": \"MTL,BLAS\",\n    \"model_filename\": \"~/Documents/projects/personal/experiments/bonsai-metal-bench/work/gguf/Ternary-Bonsai-2.5-27B-PQ2_0.gguf\",\n    \"model_type\": \"qwen35 27B PQ2_0 - 2.13 bpw (group 128)\",\n    \"model_size\": 7242233856,\n    \"model_n_params\": 26895998464,\n    \"n_batch\": 2048,\n    \"n_ubatch\": 512,\n    \"n_threads\": 6,\n    \"cpu_mask\": \"0x0\",\n    \"cpu_strict\": false,\n    \"poll\": 50,\n    \"type_k\": \"f16\",\n    \"type_v\": \"f16\",\n    \"n_gpu_layers\": 99,\n    \"n_cpu_moe\": 0,\n    \"split_mode\": \"layer\",\n    \"main_gpu\": 0,\n    \"no_kv_offload\": false,\n    \"flash_attn\": 1,\n    \"devices\": \"auto\",\n    \"tensor_split\": \"0.00\",\n    \"tensor_buft_overrides\": \"none\",\n    \"load_mode\": \"auto\",\n    \"lazy_mode\": \"auto\",\n    \"embeddings\": false,\n    \"no_op_offload\": 0,\n    \"no_host\": false,\n    \"repack\": true,\n    \"fit_target\": 0,\n    \"fit_min_ctx\": 0,\n    \"n_prompt\": 2048,\n    \"n_gen\": 0,\n    \"n_depth\": 0,\n    \"test_time\": \"2026-11-28T03:17:37Z\",\n    \"avg_ns\": 8210954708,\n    \"stddev_ns\": 63804956,\n    \"avg_ts\": 249.432880,\n    \"stddev_ts\": 1.929654,\n    \"samples_ns\": [ 8284589084, 8172006750, 8176268292 ],\n    \"samples_ts\": [ 247.206, 250.612, 250.481 ]\n  },\n  {\n    \"build_commit\": \"43f31f4\",\n    \"build_number\": 1,\n    \"cpu_info\": \"Accelerate, Apple M5 Max\",\n    \"gpu_info\": \"Apple M5 Max\",\n    \"backends\": \"MTL,BLAS\",\n    \"model_filename\": \"~/Documents/projects/personal/experiments/bonsai-metal-bench/work/gguf/Ternary-Bonsai-2.5-27B-PQ2_0.gguf\",\n    \"model_type\": \"qwen35 27B PQ2_0 - 2.13 bpw (group 128)\",\n    \"model_size\": 7242233856,\n    \"model_n_params\": 26895998464,\n    \"n_batch\": 2048,\n    \"n_ubatch\": 512,\n    \"n_threads\": 6,\n    \"cpu_mask\": \"0x0\",\n    \"cpu_strict\": false,\n    \"poll\": 50,\n    \"type_k\": \"f16\",\n    \"type_v\": \"f16\",\n    \"n_gpu_layers\": 99,\n    \"n_cpu_moe\": 0,\n    \"split_mode\": \"layer\",\n    \"main_gpu\": 0,\n    \"no_kv_offload\": false,\n    \"flash_attn\": 1,\n    \"devices\": \"auto\",\n    \"tensor_split\": \"0.00\",\n    \"tensor_buft_overrides\": \"none\",\n    \"load_mode\": \"auto\",\n    \"lazy_mode\": \"auto\",\n    \"embeddings\": false,\n    \"no_op_offload\": 0,\n    \"no_host\": false,\n    \"repack\": true,\n    \"fit_target\": 0,\n    \"fit_min_ctx\": 0,\n    \"n_prompt\": 8192,\n    \"n_gen\": 0,\n    \"n_depth\": 0,\n    \"test_time\": \"2026-11-28T03:18:10Z\",\n    \"avg_ns\": 33642654708,\n    \"stddev_ns\": 356065831,\n    \"avg_ts\": 243.518560,\n    \"stddev_ts\": 2.573337,\n    \"samples_ns\": [ 33306224208, 33606190375, 34015549542 ],\n    \"samples_ts\": [ 245.96, 243.765, 240.831 ]\n  }\n]\n"
+}

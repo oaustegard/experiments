@@ -1,0 +1,70 @@
+{
+ "fork-PQ2_0-tensor_on": {
+  "rc": 0,
+  "matmul_pipelines": [
+   "kernel_mul_mm_f32_f32",
+   "kernel_mul_mm_pq2_0_f32",
+   "kernel_mul_mv_pq2_0_f32"
+  ],
+  "libs": [
+   "mul_mm"
+  ]
+ },
+ "fork-PQ2_0-tensor_off": {
+  "rc": 0,
+  "matmul_pipelines": [
+   "kernel_mul_mm_f32_f32",
+   "kernel_mul_mm_pq2_0_f32",
+   "kernel_mul_mv_pq2_0_f32"
+  ],
+  "libs": [
+   "mul_mm"
+  ]
+ },
+ "fork-PTQ1_0-tensor_on": {
+  "rc": 0,
+  "matmul_pipelines": [
+   "kernel_mul_mm_f32_f32",
+   "kernel_mul_mm_ptq1_0_f32",
+   "kernel_mul_mv_ptq1_0_f32"
+  ],
+  "libs": [
+   "mul_mm"
+  ]
+ },
+ "fork-PTQ1_0-tensor_off": {
+  "rc": 0,
+  "matmul_pipelines": [
+   "kernel_mul_mm_f32_f32",
+   "kernel_mul_mm_ptq1_0_f32",
+   "kernel_mul_mv_ptq1_0_f32"
+  ],
+  "libs": [
+   "mul_mm"
+  ]
+ },
+ "upstream-Q2_0-tensor_on": {
+  "rc": 0,
+  "matmul_pipelines": [
+   "kernel_mul_mm_tensor_f32_f32",
+   "kernel_mul_mm_tensor_q2_0_f32",
+   "kernel_mul_mv_q2_0_f32"
+  ],
+  "libs": [
+   "mul_mm",
+   "mul_mm_tensor"
+  ]
+ },
+ "upstream-Q2_0-tensor_off": {
+  "rc": 0,
+  "matmul_pipelines": [
+   "kernel_mul_mm_f32_f32",
+   "kernel_mul_mm_q2_0_f32",
+   "kernel_mul_mv_q2_0_f32"
+  ],
+  "libs": [
+   "mul_mm",
+   "mul_mm_tensor"
+  ]
+ }
+}
