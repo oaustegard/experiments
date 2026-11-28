@@ -1,0 +1,39 @@
+{
+ "what": "llama-bench PQ2_0, -ngl 99 -fa 1 -p 512,2048 -n 0 -r 3, fork 43f31f4; tensor API on (default) vs GGML_METAL_TENSOR_DISABLE=1, two rounds each, run after the OCR benchmark with the machine idle",
+ "tensor_on": {
+  "pp512": {
+   "runs": [
+    803.3,
+    799.9
+   ],
+   "mean": 801.6
+  },
+  "pp2048": {
+   "runs": [
+    741.1,
+    740.5
+   ],
+   "mean": 740.8
+  }
+ },
+ "tensor_off": {
+  "pp512": {
+   "runs": [
+    269.2,
+    267.3
+   ],
+   "mean": 268.2
+  },
+  "pp2048": {
+   "runs": [
+    251.0,
+    263.5
+   ],
+   "mean": 257.2
+  }
+ },
+ "speedup": {
+  "pp512": 2.99,
+  "pp2048": 2.88
+ }
+}
