@@ -19,7 +19,7 @@ The paper releases no code, and its benchmarks (SplitBench, its HiddenBench spli
 
 ## Why the M5 Max makes this worth testing
 
-- **Prefill dominates agent work.** In inky's measured agent trace (memory 13ac8a1c), prefill outweighs decode 116:1, with a median prompt of 21K tokens and a median completion of 108. Four lanes on ~5K shards prefill a quarter of the tokens each, and full-attention cost drops more than linearly.
+- **Prefill dominates agent work.** In inky's measured agent trace (memory 13ac8a1c), prefill outweighs decode 116:1, with a median prompt of 21K tokens and a median completion of 108. Four lanes on ~5K shards prefill a quarter of the tokens each, and full-attention cost drops more than linearly. *(Not borne out on the built engine: 4 × 5K shards prefilled in 5.6 s against 4.8–5.5 s for one 20K prompt. See `ENGINE.md` section 8.)*
 - **Lanes are cheap but not free.** Layr measured 1.92x aggregate at batch 4 against solo. inky's expert-grouped MoE gives 1.32x at 8 lanes and 2.83x at 64. So the throughput side favours 8 shards, or several tasks at 4 shards each, over a single task at 4.
 - **Inkling is sensitive to KV precision** (erisinky: 8-bit KV flips predictions). Keep KV at the engine's default precision in every arm.
 
@@ -81,10 +81,14 @@ All arms use greedy decoding with the same system prompt, and the same answer fo
 - **P2** (0.35): on set A, `fwd` beats `passn` (level 3). It is lower than P1 because the paper's level-3 results used 9B–35B models, and Inkling's active path is 3.4B.
 - **P3** (0.7): `ctx-fwd` scores below `fwd` on set A, because the misleading comments get adopted.
 - **P4** (0.6): on set B, `fwd` is within 5 points of `solo` (with a CI that includes 0) and does not beat `vote`, because natural QA answers are rarely spread across shards.
-- **P5** (0.75): at equal tokens, `fwd` finishes a 20K-context task in less wall-clock time than `solo`, because of the shorter prefills. `fwd8` delivers more tasks per hour than `fwd`.
+- **P5** (0.75, registered 2026-11-27 before any run, **superseded by P5′ below**): at equal tokens, `fwd` finishes a 20K-context task in less wall-clock time than `solo`, because of the shorter prefills. `fwd8` delivers more tasks per hour than `fwd`.
+- **P5′** (revised 2026-11-27, **after** the Step 0 timing in `ENGINE.md` section 8; the probabilities are post-measurement and not comparable to the registered ones):
+  - **P5′a** (0.85): with one task at a time, `fwd` takes at least as much wall-clock time as `solo` at equal tokens (ratio of `fwd` to `solo` seconds per task is 1.0 or more). Basis: the same ~19.7K tokens prefilled in 4.8–5.5 s as one prompt and 5.3–5.7 s as 4 or 8 shards (about 3.5–4k tok/s either way), and each decode step is slower with more lanes (27.9 ms at 1 lane, 33.7–34.5 ms at 4). `fwd` adds R2 and R3 on top.
+  - **P5′b** (0.35): with many tasks running concurrently up to 64 lanes, `fwd8` delivers more tasks per hour than `fwd`. Basis: prefill, the limit at about 5 s per 20K-token task, does not depend on lane count.
+  - **P5′c** (0.7): tasks per hour is set mainly by total prefill tokens per task, so `solo`, `vote` and `fwd` rank by prefill tokens, not by their lane counts.
 - **P6** (0.5): R1 fact-extraction recall on set A is below 90%. If so, extraction rather than reasoning sets the ceiling.
 
-Report each prediction as held or failed, with the number.
+Report each prediction as held or failed, with the number. Score the original P5 as written (it is expected to fail on its first clause), and score P5′ separately, labelled as written after the Step 0 measurements.
 
 ## Deliverables
 
