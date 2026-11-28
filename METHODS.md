@@ -1921,16 +1921,17 @@ the result.
 
 ## Numerical / ML gotchas
 
-- **With Q8_0 activations, builds that differ only in float rounding disagree by up to about half a logit: separate
-  bugs from that noise with an exact build.** Qwen3-0.6B Q4_0 in C, re-quantizing each matrix input to Q8_0 as llama.cpp
+- **With Q8_0 activations, builds that differ only in float rounding can disagree by half a logit: separate bugs from
+  that noise with an exact build, and measure your own floor.** Qwen3-0.6B Q4_0 in C, re-quantizing each matrix input to Q8_0 as llama.cpp
   does: two host builds differing only in `-ffp-contract=off` vs `fast` differed by up to 0.57 logits (RMS 0.08) over 28
-  positions, because a 1-ulp change flips a Q8_0 rounding and the flip propagates through 28 layers. A NEON kernel against
-  the scalar build came out at 0.30, and a 0.05 tolerance failed it for no bug. The same C code with float activations and
+  positions, because a 1-ulp change flips a Q8_0 rounding and the flip propagates through 28 layers. A NEON kernel (run in QEMU)
+  against the scalar build came out at 0.30 over the scalar build's top-8 tokens, and a 0.05 tolerance failed it for no bug. The same C code with float activations and
   an f32 KV cache matched PyTorch on the same dequantized weights to 1.4e-4. So: compare an exact build against the reference
   to find bugs, then measure the quantized arithmetic's own floor and set the cross-build tolerance from it. Greedy text from
-  two correct builds can still split at a near-tie. (`carthing-llm-os/tools/check_host.py`, `results/host_check.json`)
+  two correct builds can still split at a near-tie. (`carthing-llm-os/tools/check_host.py`, `carthing-llm-os/results/host_check.json`)
 - **Quantizing all of Qwen3-0.6B to Q4_0, embedding and tied output table included, leaves 71% top-1 agreement with bf16.**
-  Measured on a 115-token paragraph with gguf-py's Q4_0 (the `llama-quantize --pure` equivalent); a short factual prompt gave
+  Measured on a 115-token paragraph (`EVAL_TEXT` in `convert.py`), PyTorch with float activations on both sides, gguf-py's
+  Q4_0 on every matrix (the choice `llama-quantize --pure` makes); a short factual prompt gave
   the same 16 greedy tokens. At 0.6B the tied embedding is a quarter of the weights. (`carthing-llm-os/results/convert.json`)
 - **To reproduce ggml's quantizers byte for byte in C, turn off FMA contraction.** clang on AArch64 fuses
   `x*id + 8.5f` (`id` is the inverse block scale) in `quantize_row_q4_0_ref` into one fused multiply-add by
