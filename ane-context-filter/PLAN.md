@@ -55,7 +55,35 @@ counts are committed.
   Separately, TypeSafe's 100K tokens/s limit stalls 8 concurrent 30K-token windows,
   so `--workers 2` (4 calls in flight) is the setting that ran.
 
-## Status: two students trained; neither reliably beats recency on Jev overlap
+## Status: fact recall settles it: Jev well ahead, students barely above recency
+
+Round 3 (2026-11-28): `factrecall.py`. On the 19 test sessions over 12K tokens, the
+`subagent-context-filter` labeller (Sonnet, 1M context) wrote 60 tasks with 232 required facts
+and the chunks holding them. Each arm's selection went to a fresh tool-less Sonnet executor;
+facts scored by regex, misses not adjudicated (`results/factrecall.json`).
+
+| arm | evidence chunks kept, 5K / 10K | facts found at 10K |
+|---|---|---|
+| Jev | 0.635 / 0.801 | 217 / 232 (93.5%) |
+| student17 | 0.229 / 0.292 | 178 / 232 (76.7%) |
+| recency | 0.244 / 0.362 | 153 / 232 (65.9%) |
+| student17lw | 0.207 / 0.273 | (executor not run) |
+
+Paired per task at 10K (bootstrap 95% CI): Jev finds +1.07 facts per task more than recency
+[+0.67, +1.50] and +0.65 more than student17 [+0.42, +0.93], better on 25 tasks and worse on 1.
+student17 beats recency by +0.42 [+0.08, +0.78]. The student keeps fewer of the labelled evidence
+chunks than recency yet yields more facts, so it finds facts repeated in other chunks; it still
+trails Jev by 39 facts. 180 executor runs cost $13.75.
+
+Reading: a 17M student distilled from 233 delegations is not a usable replacement for Jev. The
+gap is large, and the overlap metric understated it. Likely causes, in order: the student scores
+each chunk alone, while Jev sees the task with the whole session's index and user messages; the
+training tasks (real delegations, median 165 characters, many of them templated) differ from these
+fact-carrying tasks; and 233 delegations is little data. Worth trying only with a cheap answer to the
+first cause, e.g. prepending the session's user messages to each pair; otherwise the ANE filter
+is not worth building, and Jev stays the filter.
+
+## Round 2 status: two students trained; neither reliably beats recency on Jev overlap
 
 Round 2 (2026-11-27): the listwise loss (`train.py --loss listwise`: each step one
 delegation's chunks, up to 48, KL to the softmax of Jev's logits, plus 0.2x BCE),
