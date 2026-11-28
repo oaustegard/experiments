@@ -1,0 +1,131 @@
+{
+ "env": {
+  "timestamp": "2026-11-27T17:34:54",
+  "platform": "Darwin arm64",
+  "chip": "Apple M5 Max",
+  "model": "Mac17,6",
+  "memsize_bytes": "137438953472",
+  "perf_cores": "6",
+  "macos": "27.2.1",
+  "macos_build": "26B131",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t80%; AC attached; not charging present: true",
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "python": "3.12.16",
+  "low_power_mode": false,
+  "on_ac_power": true,
+  "powermode": "0"
+ },
+ "args": {
+  "only": "['whisperkit']",
+  "windows": "4",
+  "window": "29.0",
+  "whisperkit_cli": "None",
+  "whisperkit_units": "cpuAndNeuralEngine",
+  "whispercpp_units": "ne",
+  "cooldown": "20",
+  "force": "False",
+  "no_gpu_busy": "True",
+  "llama_bench": "None",
+  "gpu_model": "None",
+  "gpu_n": "512",
+  "gpu_reps": "6",
+  "gpu_settle": "20"
+ },
+ "engines": {
+  "whisperkit": {
+   "setup": {
+    "binary": "/opt/homebrew/bin/whisperkit-cli",
+    "version": "v1.1.1",
+    "model": "large-v3-v20240930_turbo",
+    "compute_units": "cpuAndNeuralEngine",
+    "models_existed_before": false
+   },
+   "first_invocation": {
+    "rc": 0,
+    "wall_s": 156.88,
+    "t0": 1795819101.221448,
+    "t1": 1795819258.106242,
+    "load": {
+     "modelLoading": 64.163,
+     "encoderLoadTime": 62.357,
+     "decoderLoadTime": 0.887,
+     "prewarmLoadTime": 0,
+     "encoderSpecializationTime": 0,
+     "decoderSpecializationTime": 0,
+     "tokenizerLoadTime": 0.844
+    },
+    "stages_s": {
+     "encoding": 0.276,
+     "decodingLoop": 1.379,
+     "logmels": 0.594,
+     "audioLoading": 0.005
+    },
+    "engine_s": 1.38,
+    "load_s": 64.163
+   },
+   "idle": {
+    "audio_s": 102.7,
+    "windows": 4,
+    "wall_s": 5.0,
+    "engine_s": 3.268,
+    "load_s": 0.679,
+    "load": {
+     "modelLoading": 0.679,
+     "encoderLoadTime": 0.368,
+     "decoderLoadTime": 0.022,
+     "prewarmLoadTime": 0,
+     "encoderSpecializationTime": 0,
+     "decoderSpecializationTime": 0,
+     "tokenizerLoadTime": 0.236
+    },
+    "single_window_wall_s": 2.57,
+    "single_window_load_s": 0.634,
+    "error": null,
+    "rtf": 0.03182,
+    "speed_x_realtime": 31.4,
+    "rtf_wall_marginal": 0.03049,
+    "stages_s": {
+     "encoding": 1.106,
+     "decodingLoop": 3.264,
+     "logmels": 0.027,
+     "audioLoading": 0.008
+    },
+    "wer": 0.00702,
+    "substitutions": 1,
+    "deletions": 1,
+    "insertions": 0,
+    "ref_words": 285,
+    "windows_missing": 0
+   }
+  }
+ },
+ "audio": {
+  "windows": 4,
+  "seconds": 102.7,
+  "source": "https://www.openslr.org/resources/12/test-clean.tar.gz",
+  "window_ids": [
+   [
+    "1320-122612-0000",
+    "1320-122612-0001"
+   ],
+   [
+    "3575-170457-0011",
+    "3575-170457-0012",
+    "3575-170457-0013",
+    "3575-170457-0014"
+   ],
+   [
+    "5683-32866-0019",
+    "5683-32866-0020"
+   ],
+   [
+    "8230-279154-0000",
+    "8230-279154-0001"
+   ]
+  ]
+ },
+ "env_after": {
+  "pmset_therm": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "pmset_batt": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24182883)\t80%; AC attached; not charging present: true"
+ }
+}
